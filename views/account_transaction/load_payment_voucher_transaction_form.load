@@ -1,0 +1,52 @@
+{{=table}}
+{{=form.custom.begin}}
+    <div class="col-sm-1">
+        <div class="form-group">
+            <label>Code</label>
+            <input type="text" class="form-control" placeholder="Enter ...">
+        </div>
+    </div>
+    <div class="col-sm-2">
+        <div class="form-group">        
+            <label>Department</label>
+            <input type="text" class="form-control" placeholder="Enter ...">
+        </div>
+    </div>    
+    <div class="col-sm-2">
+        <div class="form-group">        
+            <label>Type</label>
+            <input type="text" class="form-control" placeholder="Enter ...">
+        </div>
+    </div>
+    <div class="col-sm-2">
+        <div class="form-group">        
+            <label>Ref.No.</label>
+            <input type="text" class="form-control" placeholder="Enter ...">
+        </div>
+    </div>    
+    <div class="col-sm-2">
+        <div class="form-group">        
+            <label>Description</label>
+            <input type="text" class="form-control" placeholder="Enter ...">
+        </div>
+    </div>
+    <div class="col-sm-2">
+        <div class="form-group">        
+            <label>Amount</label>
+            <input type="text" class="form-control" placeholder="Enter ...">
+        </div>
+    </div>    
+    <div class="col-sm-1">  
+        <div class="form-group">           
+            <input class="btn btn-default btn-flat" type="button" id="btnAdd" value="Add">
+        </div>
+    </div>    
+{{=form.custom.end}}
+
+<script>
+$(document).ready(function(){
+    $("#btnAdd").click(function(){
+        console.log("Add");
+    });            
+});
+</script>

@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<!--[if (gt IE 9)|!(IE)]><!--> <html class="no-js" lang="{{=T.accepted_language or 'en'}}"> <!--<![endif]-->
+  <head>
+    <meta charset="utf-8">
+    <!-- www.phpied.com/conditional-comments-block-downloads/ -->
+    <!-- Always force latest IE rendering engine
+         (even in intranet) & Chrome Frame
+         Remove this if you use the .htaccess -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge{{=not request.is_local and ',chrome=1' or ''}}">
+    <!--  Mobile Viewport Fix
+          j.mp/mobileviewport & davidbcalhoun.com/2010/viewport-metatag
+          device-width: Occupy full width of the screen in its current orientation
+          initial-scale = 1.0 retains dimensions instead of zooming out if page height > device height
+          user-scalable = yes allows the user to zoom in -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{=response.title or request.application}}</title>
+    <!-- http://dev.w3.org/html5/markup/meta.name.html -->
+    <meta name="application-name" content="{{=request.application}}">
+    <!-- Speaking of Google, don't forget to set your site up:
+         http://google.com/webmasters -->
+    <meta name="google-site-verification" content="">
+    <!-- include stylesheets -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"/>
+    <!-- <link rel="stylesheet" href="{{=URL('static','css/bootstrap.min.css')}}"/> -->
+    <!-- <link rel="stylesheet" href="{{=URL('static','css/web2py-bootstrap4.css')}}"/> -->
+    <link rel="shortcut icon" href="{{=URL('static','images/favicon.ico')}}" type="image/x-icon">
+    <link rel="apple-touch-icon" href="{{=URL('static','images/favicon.png')}}">
+
+    <link rel="stylesheet" href="{{=URL('static','dist/css/bootstrap.min.css')}}"/>
+    <link rel="stylesheet" href="{{=URL('static','dist/css/AdminLTE.min.css')}}"/>
+    <link rel="stylesheet" href="{{=URL('static','dist/css/_all-skins.min.css')}}"/>
+    <link rel="stylesheet" href="{{=URL('static','dist/bootstrap-table-master/dist/bootstrap-table.min.css')}}"/>
+    <link rel="stylesheet" href="{{=URL('static','dist/alertify/css/alertify.min.css')}}"/>
+    <link rel="stylesheet" href="{{=URL('static','dist/alertify/css/themes/semantic.css')}}"/>    
+    
+    <!-- All JavaScript at the bottom, except for Modernizr which enables
+         HTML5 elements & feature detects -->
+    <script src="{{=URL('static','js/modernizr-2.8.3.min.js')}}"></script>
+    <!-- Favicons -->
+    {{include 'web2py_ajax.html'}} <!-- this includes jquery.js, calendar.js/.css and web2py.js -->
+    {{block head}}{{end}}
+    <style type="text/css">.jqstooltip { position: absolute;left: 0px;top: 0px;visibility: hidden;background: rgb(0, 0, 0) transparent;background-color: rgba(0,0,0,0.6);filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#99000000, endColorstr=#99000000);-ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr=#99000000, endColorstr=#99000000)";color: white;font: 10px arial, san serif;text-align: left;white-space: nowrap;padding: 5px;border: 1px solid white;box-sizing: content-box;z-index: 10000;}.jqsfield { color: white;font: 10px arial, san serif;text-align: left;}</style>
+
+  </head>
+  <body class="skin-blue sidebar-mini" style="height: auto; min-height: 100%;" >
+    <!-- <div class="w2p_flash alert alert-dismissable">{{=response.flash or ''}}</div> -->
+    <!-- Navbar ======================================= -->
+
+    <div class="wrapper" style="height: auto; min-height: 100%;">
+      {{if 'auth' in globals():}}
+      <header class="main-header">
+        
+        <!-- Logo -->
+        <!-- <a href="http://localhost:3020/Merch_ERP" class="logo"> -->
+        <a href="http://128.1.2.2:3010/Merch_Finances" class="logo">
+          <!-- mini logo for sidebar mini 50x50 pixels -->
+          <span class="logo-mini"><b>M</b>ERP</span>
+          <!-- logo for regular state and mobile devices -->
+          <span class="logo-lg"><b>Merch</b>ERP</span>
+        </a>
+        <!-- Header Navbar: style can be found in header.less -->
+        <nav class="navbar navbar-static-top">
+          <!-- Sidebar toggle button-->
+          <a href="#" class="sidebar-toggle" data-toggle="push-menu" role="button">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </a>
+    
+          <div class="navbar-custom-menu">
+            <ul class="nav navbar-nav">
+
+              <!-- User Account: style can be found in dropdown.less -->
+              <li class="dropdown user user-menu">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                  <!-- <img src="../../dist/img/user2-160x160.jpg" class="user-image" alt="User Image"> -->
+                  <span class="hidden-xs">{{if auth.user:}}{{=auth.user.first_name}} {{=auth.user.last_name}}{{else:}}LOGIN{{pass}}</span>
+                </a>
+                <ul class="dropdown-menu">
+                  <!-- User image -->
+                  <li class="user-header">
+                    <!-- <img src="../../dist/img/user2-160x160.jpg" class="img-circle" alt="User Image"> -->
+                    
+                    <p>
+                      {{if auth.user:}}{{=auth.user.first_name.upper()}} {{=auth.user.last_name.upper()}}  
+                      {{ pass }}
+                    </p>
+                    
+                  </li>
+                  <!-- Menu Footer-->
+                  <li class="user-footer">
+                    <!-- <div class="pull-left">
+                      <a href="{{=URL('default','user/profile')}}" class="btn btn-default btn-flat">Profile</a>
+                    </div> -->
+                    <div class="pull-right">
+                      <a href="{{=URL('default','user/logout')}}" class="btn btn-default btn-flat">Sign out</a>
+                    </div>
+                  </li>
+                </ul>
+              </li>
+              <!-- Control Sidebar Toggle Button -->
+              <!-- <li>
+                <a href="#" data-toggle="control-sidebar"><i class="fa fa-gears"></i></a>
+              </li> -->
+            </ul>
+          </div>
+        </nav>
+      </header>
+      {{pass}}
+     
+      <!-- Left side column. contains the logo and sidebar -->
+      <aside class="main-sidebar">
+        
+        <!-- sidebar: style can be found in sidebar.less -->
+        <section class="sidebar">
+          <!-- Sidebar user panel -->
+          
+          <!-- sidebar menu: : style can be found in sidebar.less -->
+          <ul class="sidebar-menu tree" data-widget="tree">
+            <li class="header">MAIN NAVIGATION</li>
+            
+            <li><a href="{{=URL('default','index')}}"><i class="fa fa-dashboard"></i> <span>Dashboard</span></a></li>
+
+            <li class="treeview menu">
+              <a href="#">
+                <i class="fa fa-user-circle-o"></i> <span>Master</span>
+                <span class="pull-right-container">
+                  <i class="fa fa-angle-left pull-right"></i>
+                </span>                  
+              </a>
+              <ul class="treeview-menu">                    
+                <li class="treeview menu"><a href="#"><i class="fa fa-caret-right"></i> Master Accounts</a></li>                                                       
+              </ul>              
+            </li>                              
+            <li class="treeview menu">
+              <a href="#">
+                <i class="fa fa-money"></i> <span>Accounts Transactions</span>
+                <span class="pull-right-container">
+                  <i class="fa fa-angle-left pull-right"></i>
+                </span>
+              </a>                                 
+              <ul class="treeview-menu" >
+                <li><a href="#"><i class="fa fa-caret-right"></i> Receipt Voucher</a></li>
+                <li><a href="{{=URL('account_transaction','get_payment_voucher_grid')}}"><i class="fa fa-caret-right"></i> Payment Voucher</a></li>
+                <li><a href="#"><i class="fa fa-caret-right"></i> Journal Voucher</a></li>
+                <li><a href="#"><i class="fa fa-caret-right"></i> Accounts Reconciliation</a></li>
+              </ul>
+            </li>           
+            <li class="treeview menu">  
+                <a href="#">
+                  <i class="fa fa-print"></i> <span>Reports</span>
+                  <span class="pull-right-container">
+                    <i class="fa fa-angle-left pull-right"></i>
+                  </span>
+                </a>
+                <ul class="treeview-menu">
+                  <li><a href="#"><i class="fa fa-caret-right"></i> Statement of Accounts</a></li>                                    
+                  <li><a href="#"><i class="fa fa-caret-right"></i> Overdues</a></li>                  
+                  <li><a href="#"><i class="fa fa-caret-right"></i> Balance Sheet</a></li>        
+                  <li><a href="#"><i class="fa fa-caret-right"></i> Trial Balance</a></li>                                    
+                  <li><a href="#"><i class="fa fa-caret-right"></i> Financial Statement</a></li>                  
+                </ul>
+            </li>              
+            <li>
+              <a href="#">
+                <i class="fa fa-wrench"></i> <span>Utilities</span>
+              </a>
+            </li>
+            <li class="treeview menu">
+              <a href="#">
+                <i class="fa fa-cogs"></i> <span>Settings</span>
+                <span class="pull-right-container">
+                  <i class="fa fa-angle-left pull-right"></i>
+                </span>
+              </a>                                 
+              <ul class="treeview-menu" >
+                <li><a href="{{=URL('leave_mngt','get_application_report_grid')}}"><i class="fa fa-caret-right"></i> Account Transactions Type</a></li>
+                <li><a href="{{=URL('leave_mngt','get_application_report_grid')}}"><i class="fa fa-caret-right"></i> Chart of Accounts</a></li>
+                <li><a href="{{=URL('account_transaction','get_application_report_grid')}}"><i class="fa fa-caret-right"></i> Transaction Prefix</a></li>
+              </ul>
+            </li>     
+            <li><a href="{{=URL('default','get_help')}}"><i class="fa fa-question"></i> <span>Help</span></a></li>            
+          </ul>
+        </section>
+      </aside>
+      
+      
+      <!-- Content Wrapper. Contains page content -->
+      <div class="content-wrapper" style="min-height: 1036px;">       
+          
+        
+        <section class="content-header">            
+          <h1>Finances</h1>
+        </section>        
+
+          {{block center}}  
+          
+          <!-- <div class="lv-bars lv-mid lg" data-label="Loading..."> -->
+          {{include}}
+          
+          {{end}}
+          
+      </div>
+      
+      
+      <!-- /.content-wrapper -->
+      <footer class="main-footer">
+        <div class="pull-right hidden-xs">
+          <b>Version</b> 1.1.0
+        </div>
+        <strong>2019-{{=request.now.year}} <a href="#">Merch & Partners Co. WLL</a>.</strong> 
+      </footer>
+    
+
+      <!-- Add the sidebar's background. This div must be placed
+            immediately after the control sidebar -->
+      <div class="control-sidebar-bg"></div>
+    </div>   
+
+    <!-- The javascript =============================== -->
+    <script src="https://npmcdn.com/tether@1.2.4/dist/js/tether.min.js"></script>
+    <script src="{{=URL('static','js/bootstrap.bundle.min.js')}}"></script>
+    <script src="{{=URL('static','js/web2py-bootstrap4.js')}}"></script>
+
+    <script src="{{=URL('static','dist/js/jquery.min.js')}}"></script>
+    <script src="{{=URL('static','dist/js/bootstrap.min.js')}}"></script>
+    <script src="{{=URL('static','dist/js/adminlte.min.js')}}"></script>
+    <script src="{{=URL('static','dist/js/demo.js')}}"></script>
+    <script src="{{=URL('static','dist/bootstrap-table-master/dist/bootstrap-table.min.js')}}"></script>    
+    <script src="{{=URL('static','dist/alertify/alertify.min.js')}}"></script>     
+    {{block page_js}}{{end page_js}}
+    {{if response.google_analytics_id:}}
+    <!-- Analytics ==================================== -->
+    <script src="{{=URL('static','js/analytics.min.js')}}"></script>
+    <script type="text/javascript">
+      analytics.initialize({
+      'Google Analytics':{trackingId:'{{=response.google_analytics_id}}'}
+      });
+    </script>
+    {{pass}}
+  </body>
+</html>
