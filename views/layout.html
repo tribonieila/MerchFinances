@@ -32,7 +32,7 @@
     <link rel="stylesheet" href="{{=URL('static','dist/bootstrap-table-master/dist/bootstrap-table.min.css')}}"/>
     <link rel="stylesheet" href="{{=URL('static','dist/alertify/css/alertify.min.css')}}"/>
     <link rel="stylesheet" href="{{=URL('static','dist/alertify/css/themes/semantic.css')}}"/>    
-    
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.20/css/dataTables.bootstrap4.min.css"/> 
     <!-- All JavaScript at the bottom, except for Modernizr which enables
          HTML5 elements & feature detects -->
     <script src="{{=URL('static','js/modernizr-2.8.3.min.js')}}"></script>
@@ -144,6 +144,7 @@
                 <li><a href="#"><i class="fa fa-caret-right"></i> Receipt Voucher</a></li>
                 <li><a href="{{=URL('account_transaction','get_payment_voucher_grid')}}"><i class="fa fa-caret-right"></i> Payment Voucher</a></li>
                 <li><a href="#"><i class="fa fa-caret-right"></i> Journal Voucher</a></li>
+                <li><a href="{{=URL('account_transaction','get_debit_credit_note_grid')}}"><i class="fa fa-caret-right"></i> Debit/Credit Note</a></li>
                 <li><a href="#"><i class="fa fa-caret-right"></i> Accounts Reconciliation</a></li>
               </ul>
             </li>           
@@ -177,7 +178,7 @@
               <ul class="treeview-menu" >
                 <li><a href="{{=URL('leave_mngt','get_application_report_grid')}}"><i class="fa fa-caret-right"></i> Account Transactions Type</a></li>
                 <li><a href="{{=URL('leave_mngt','get_application_report_grid')}}"><i class="fa fa-caret-right"></i> Chart of Accounts</a></li>
-                <li><a href="{{=URL('account_transaction','get_application_report_grid')}}"><i class="fa fa-caret-right"></i> Transaction Prefix</a></li>
+                <li><a href="{{=URL('account_transaction','get_transaction_prefix_grid')}}"><i class="fa fa-caret-right"></i> Transaction Prefix</a></li>
               </ul>
             </li>     
             <li><a href="{{=URL('default','get_help')}}"><i class="fa fa-question"></i> <span>Help</span></a></li>            
@@ -228,7 +229,11 @@
     <script src="{{=URL('static','dist/js/adminlte.min.js')}}"></script>
     <script src="{{=URL('static','dist/js/demo.js')}}"></script>
     <script src="{{=URL('static','dist/bootstrap-table-master/dist/bootstrap-table.min.js')}}"></script>    
-    <script src="{{=URL('static','dist/alertify/alertify.min.js')}}"></script>     
+    <script src="{{=URL('static','dist/alertify/alertify.min.js')}}"></script>    
+    
+    <script src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.20/js/dataTables.bootstrap4.min.js"></script>
+   
     {{block page_js}}{{end page_js}}
     {{if response.google_analytics_id:}}
     <!-- Analytics ==================================== -->

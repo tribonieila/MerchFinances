@@ -1,0 +1,68 @@
+{{extend 'layout.html'}}
+<section class="content-header">
+    <h1>Account Transactions<small>Form</small></h1>
+</section>
+<section class="content">
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="box box-default">
+                <div class="box-header with-border">
+                    <h3 class="box-title">Debit/Credit Note Form</h3>
+                    <div class="pull-right"><a href="#" id="btnRefresh" class="text-muted"><i class="fa fa-refresh"></i></a></div>
+                </div>
+                <div class="box-body">
+                    <div class="form-horizontal">
+                        {{=form.custom.begin}}     
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">Serial Note No.</label>                            
+                            <div class="col-sm-2"><input class="form-control" id="serial_note" name="serial_note" type="text" value={{=ctr}} readonly></div>                            
+                            <label class="col-sm-4 control-label">Transaction Date</label>
+                            <div class="col-sm-2"><input class="form-control" id="transaction_date" name="transaction_date" type="text" value={{=request.now}} readonly></div>
+                        </div>                   
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">Department</label>
+                            <div class="col-sm-4">{{=form.custom.widget.department_id}}</div>    
+                            <label class="col-sm-2 control-label">Business Unit</label>
+                            <div class="col-sm-4">{{=form.custom.widget.business_unit}}</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">Transaction Type</label>
+                            <div class="col-sm-4">{{=form.custom.widget.transaction_type}}</div>
+                            <label class="col-sm-2 control-label">Note Type</label>
+                            <div class="col-sm-2">{{=form.custom.widget.note_type}}</div>                              
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">Currency</label>
+                            <div class="col-sm-2">{{=form.custom.widget.currency_id}}</div>
+                            
+                            <label class="col-sm-4 control-label">To</label>
+                            <div class="col-sm-2"><input class="form-control" id="Employee_Master_Leave_to_effective_date" name="to_effective_date" type="text" value={{=request.now.strftime('%m-%d-%Y')}} readonly></div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">Remarks</label>
+                            <div class="col-sm-4">{{=form.custom.widget.remarks}}</div>        
+                            <label class="col-sm-2 control-label">Status</label>
+                            <div class="col-sm-4">{{=form.custom.widget.status_id}}</div>
+                        </div>
+                        <div class="form-group">
+                            <!-- <div class="col-sm-8"></div> -->
+                            <label class="col-sm-8 control-label"></label>
+                            <div class="col-sm-4">
+                                <input class="btn btn-primary btn-flat" type="submit" value="Submit" id="btnSubmit">
+                                <input class="btn btn-danger btn-flat" type="button" value="Abort" id="btnAbort">
+                            <!-- <input class="btn btn-success btn-flat" type="button" value="Leave History" id="btnHistory"> -->
+                                
+                            </div>
+                        </div>
+            
+                        {{=form.custom.end}}        
+                    </div>                    
+                </div>
+            </div>            
+        </div>
+    </div>
+</section>
+
+<script>
+</script>
+

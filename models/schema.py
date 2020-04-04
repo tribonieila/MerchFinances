@@ -1,5 +1,4 @@
-
-db.define_table('Transaction_Prefix',    
+db.define_table('Transaction_Prefix',
     Field('prefix', length = 10, requires = [IS_UPPER(), IS_NOT_EMPTY()]), 
     Field('prefix_name','string', length = 30, requires = [IS_UPPER(), IS_NOT_EMPTY()]),    
     Field('current_year_serial_key', 'integer'),
@@ -76,8 +75,90 @@ db.define_table('Account_Transaction',
     Field('created_on', 'datetime', default=request.now, writable = False, readable = False),
     Field('created_by', db.auth_user, ondelete = 'NO ACTION', default=auth.user_id, writable = False, readable = False),
     Field('updated_on', 'datetime', update=request.now, writable = False, readable = False),
-    Field('updated_by', db.auth_user, ondelete = 'NO ACTION', update=auth.user_id, writable = False, readable = False), format = '%(sector)s')
+    Field('updated_by', db.auth_user, ondelete = 'NO ACTION', update=auth.user_id, writable = False, readable = False))
 
+db.define_table('Business_Unit',
+    Field('business_name','string',length=50),
+    Field('created_on', 'datetime', default=request.now, writable = False, readable = False),
+    Field('created_by', db.auth_user, ondelete = 'NO ACTION', default=auth.user_id, writable = False, readable = False),
+    Field('updated_on', 'datetime', update=request.now, writable = False, readable = False),
+    Field('updated_by', db.auth_user, ondelete = 'NO ACTION', update=auth.user_id, writable = False, readable = False))
+
+db.define_table('Record_Status',
+    Field('status','string',length=20, requires = [IS_LENGTH(20),IS_UPPER(), IS_NOT_IN_DB(db, 'Status.status')]),
+    Field('created_on', 'datetime', default=request.now, writable = False, readable = False),
+    Field('created_by', db.auth_user, ondelete = 'NO ACTION', default=auth.user_id, writable = False, readable = False),
+    Field('updated_on', 'datetime', update=request.now, writable = False, readable = False),
+    Field('updated_by', db.auth_user, ondelete = 'NO ACTION', update=auth.user_id, writable = False, readable = False),format = '%(status)s')
+
+db.define_table('Note_Status',
+    Field('status', 'string', length = 10, requires = [IS_LENGTH(10), IS_UPPER()]),
+    Field('action_required','string', length = 50),
+    Field('description', 'string', length = 50, requires = [IS_LENGTH(50), IS_UPPER()]),         
+    Field('created_on', 'datetime', default=request.now, writable = False, readable = False),
+    Field('created_by', db.auth_user, ondelete = 'NO ACTION',default=auth.user_id, writable = False, readable = False),
+    Field('updated_on', 'datetime', update=request.now, writable = False, readable = False),
+    Field('updated_by', db.auth_user, ondelete = 'NO ACTION',update=auth.user_id, writable = False, readable = False), format = 'mnemonic')
+
+db.define_table('Currency',
+    Field('mnemonic', 'string', length = 10, requires = [IS_LENGTH(10), IS_UPPER()]),
+    Field('description', 'string', length = 50, requires = [IS_LENGTH(50), IS_UPPER()]), 
+    Field('status_id','reference Record_Status', ondelete = 'NO ACTION', label = 'Status', default = 1, requires = IS_IN_DB(db, db.Record_Status.id,'%(status)s', zero = 'Choose status')), 
+    Field('created_on', 'datetime', default=request.now, writable = False, readable = False),
+    Field('created_by', db.auth_user, ondelete = 'NO ACTION', default=auth.user_id, writable = False, readable = False),
+    Field('updated_on', 'datetime', update=request.now, writable = False, readable = False),
+    Field('updated_by', db.auth_user, ondelete = 'NO ACTION', update=auth.user_id, writable = False, readable = False), format = 'mnemonic')
+
+db.define_table('Stand_Rent_Brand',
+    Field('brand_code','string',length=10),
+    Field('brand_name','string',length=50),
+    Field('created_on', 'datetime', default=request.now, writable = False, readable = False),
+    Field('created_by', db.auth_user, ondelete = 'NO ACTION', default=auth.user_id, writable = False, readable = False),
+    Field('updated_on', 'datetime', update=request.now, writable = False, readable = False),
+    Field('updated_by', db.auth_user, ondelete = 'NO ACTION', update=auth.user_id, writable = False, readable = False))
+
+db.define_table('Debit_Credit',
+    Field('serial_note','string',length=10),
+    Field('department_id','reference Department',ondelete='NO ACTION',requires=IS_IN_DB(db,db.Department.id,'%(department_code)',zero='Choose Department')),    
+    Field('business_unit','reference Business_Unit',ondelete='NO ACTION',requires=IS_IN_DB(db,db.Business_Unit.id,'%(business_name)', zero='Choose Business Unit')),
+    Field('transaction_date','date',request.now),
+    Field('transaction_type','string',length=25,requires = IS_IN_SET(['Debit Note','Credit Note'], zero = 'Transaction Type')),
+    Field('note_type','string',length=25,requires=IS_IN_SET(['Normal Rent','Stand Rent'],zero='Type of Note')),
+    Field('currency_id', 'reference Currency', requires = IS_IN_DB(db, db.Currency.id, '%(mnemonic)s - %(description)s', zero = 'Choose Currency')),
+    Field('brand_code_id','reference Stand_Rent_Brand',ondelete='NO ACTION',requires=IS_IN_DB(db,db.Stand_Rent_Brand.id,'%(brand_name)',zero='Choose Brand Name')),
+    Field('total_amount','decimal(10,2)',default=0),
+    Field('remarks','string'),
+    Field('account_remarks','string'),
+    Field('department_remarks','string'),
+    Field('management_remakrs','string'),
+    Field('status_id','reference Note_Status', ondelete = 'NO ACTION', label = 'Status', default = 1, requires = IS_IN_DB(db, db.Note_Status.id,'%(status)s', zero = 'Choose status')), 
+    Field('created_on', 'datetime', default=request.now, writable = False, readable = False),
+    Field('created_by', db.auth_user, ondelete = 'NO ACTION', default=auth.user_id, writable = False, readable = False),
+    Field('updated_on', 'datetime', update=request.now, writable = False, readable = False),
+    Field('updated_by', db.auth_user, ondelete = 'NO ACTION', update=auth.user_id, writable = False, readable = False))
+
+db.define_table('Debit_Credit_Transaction',
+    Field('serial_note_id','reference Debit_Credit',ondelete='NO ACTION',writable=False,readable=False),
+    Field('account_code'),
+    Field('description_1','string'),
+    Field('description_2','string'),
+    Field('date_from','date'),
+    Field('date_to','date'),
+    Field('amount','decimal(10,2)'),
+    Field('created_on', 'datetime', default=request.now, writable = False, readable = False),
+    Field('created_by', db.auth_user, ondelete = 'NO ACTION', default=auth.user_id, writable = False, readable = False),
+    Field('updated_on', 'datetime', update=request.now, writable = False, readable = False),
+    Field('updated_by', db.auth_user, ondelete = 'NO ACTION', update=auth.user_id, writable = False, readable = False))
+
+db.define_table('Debit_Credit_Transaction_Temporary',
+    Field('serial_note_id','reference Debit_Credit',ondelete='NO ACTION',writable=False,readable=False),
+    Field('account_code'),
+    Field('description_1','string'),
+    Field('description_2','string'),
+    Field('date_from','date'),
+    Field('date_to','date'),
+    Field('amount','decimal(10,2)'))
+    
 db.define_table('acctvou',
     Field('type','integer'),
     Field('refdte','date',default=request.now),
@@ -120,4 +201,3 @@ db.define_table('accttrn',
     Field('created_by', db.auth_user, ondelete = 'NO ACTION', default=auth.user_id, writable = False, readable = False),
     Field('updated_on', 'datetime', update=request.now, writable = False, readable = False),
     Field('updated_by', db.auth_user, ondelete = 'NO ACTION', update=auth.user_id, writable = False, readable = False), format = '%(sector)s')
-
