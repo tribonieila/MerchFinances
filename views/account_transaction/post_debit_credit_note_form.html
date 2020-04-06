@@ -72,21 +72,21 @@
 
 <script type="text/javascript">
 $(document).ready(function(){
-    $("#Debit_Credit_brand_code_id, #btnSubmit, #btnProceed").prop( "disabled", true );
+    $("#no_table_brand_code_id, #btnSubmit, #btnProceed").prop( "disabled", true );
     // $("#tranx").hide();
-    $("#Debit_Credit_department_id, #Debit_Credit_business_unit, #Debit_Credit_transaction_type, #Debit_Credit_currency_id, #Debit_Credit_status_id").change(function(){
-        if ($("#Debit_Credit_department_id").val() && $("#Debit_Credit_business_unit").val() && $("#Debit_Credit_transaction_type").val() && $("#Debit_Credit_currency_id").val() && $("#Debit_Credit_status_id").val()) {            
+    $("#no_table_department_id, #no_table_business_unit, #no_table_transaction_type, #no_table_currency_id, #no_table_status_id, #no_table_note_type").change(function(){
+        if ($("#no_table_department_id").val() && $("#no_table_business_unit").val() && $("#no_table_transaction_type").val() && $("#no_table_currency_id").val() && $("#no_table_status_id").val() && $("#no_table_note_type").val()) {            
             $("#btnProceed").prop( "disabled", false );
         } else {
             $("#btnProceed").prop( "disabled", true );
         }
     });
-    $("#Debit_Credit_note_type").change(function(){
-        if ($("#Debit_Credit_note_type").val() == "Stand Rent") {
-            $("#Debit_Credit_brand_code_id" ).prop( "disabled", false );            
+    $("#no_table_note_type").change(function(){
+        if ($("#no_table_note_type").val() == "Stand Rent") {
+            $("#no_table_brand_code_id" ).prop( "disabled", false );            
         } else {
-            $("#Debit_Credit_brand_code_id").prop( "disabled", true );
-            $("#Debit_Credit_brand_code_id").val("");            
+            $("#no_table_brand_code_id").prop( "disabled", true );
+            $("#no_table_brand_code_id").val("");            
         }
     });
 

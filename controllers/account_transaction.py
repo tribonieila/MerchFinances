@@ -207,6 +207,9 @@ def get_brand_grid():
     return dict(form = form, table=table)   
 
 def post_debit_credit_note_form():
+    ticket_no_id = id_generator()
+    session.ticket_no_id = ticket_no_id
+
     ctr = db(db.Transaction_Prefix.prefix_key == 'DCN').select().first()
     _skey = ctr.current_year_serial_key
     _skey += 1
@@ -214,25 +217,39 @@ def post_debit_credit_note_form():
     db.Debit_Credit.status_id.requires = IS_IN_DB(db(db.Note_Status.id == 1), db.Note_Status.id, '%(status)s', zero = 'Choose Status')
     db.Debit_Credit.status_id.default = 1
     db.Debit_Credit.serial_note.default = _skey
-    form = SQLFORM(db.Debit_Credit)
+    form = SQLFORM.factory(db.Debit_Credit)
     if form.process().accepted:
         response.flash = 'FORM SAVE'
+        db.Debit_Credit_Transaction_Temporary.amount.sum()
+        _sum = db(db.Debit_Credit_Transaction_Temporary.ticket_no_id == str(request.vars.ticket_no_id)).select(db.Debit_Credit_Transaction_Temporary.amount.sum()).first()[db.Debit_Credit_Transaction_Temporary.amount.sum()]
+        _query = db(db.Debit_Credit_Transaction_Temporary.ticket_no_id == str(request.vars.ticket_no_id)).select()
+        db.Debit_Credit.insert(
+            serial_note = _skey,
+            department_id = form.vars.department_id,
+            business_unit = form.vars.business_unit,
+            transaction_date = form.vars.transaction_date,
+            transaction_type = form.vars.transaction_type,
+            note_type = form.vars.note_type,
+            currency_id = form.vars.currency_id,
+            brand_code_id = form.vars.brand_code_id,                
+            remarks = form.vars.remarks,
+            status_id = form.vars.status_id,
+            total_amount = _sum,
+            ticket_no = request.vars.ticket_no_id
+        )
+        print 'insert: ', _skey, _sum, request.vars.ticket_no_id
     elif form.errors:
-        response.flash = 'FORM HAS ERROR'
-
-    ticket_no_id = id_generator()
-    session.ticket_no_id = ticket_no_id
-
+        response.flash = 'FORM HAS ERROR'        
     return dict(form = form, ctr = str('DCN%s') % (_skey), ticket_no_id = ticket_no_id)
 
 def post_debit_credit_tranx_load():
     row = []
     ctr = 0
     head = THEAD(TR(TH('#'),TH('Account Code'),TH('Description'),TH('Description'),TH('Date From'),TH('Date To'),TH('Amount'),TH('Action')))
-    for n in db().select(db.Debit_Credit_Transaction_Temporary.ALL):
+    for n in db(db.Debit_Credit_Transaction_Temporary.ticket_no_id == str(session.ticket_no_id)).select(db.Debit_Credit_Transaction_Temporary.ALL):
         ctr += 1        
         dele_lnk = A(I(_class='fa fa-trash'), _title='Delete Row', _type='button  ', _role='button', _class='btn btn-icon-toggle', delete='tr',_id='del',callback=URL('put_del_tmp', args = n.id,extension=False))        
-        btn_lnk = DIV(dele_lnk)        
+        btn_lnk = DIV(dele_lnk)                
         row.append(TR(TD(ctr),TD(n.account_code),TD(n.description_1),TD(n.description_2),TD(n.date_from),TD(n.date_to),TD(n.amount),TD(btn_lnk)))
     body = TBODY(*row)
     table = TABLE(*[head, body], _class='table',_id='dctTemp')
@@ -261,10 +278,10 @@ def post_debit_credit_tranx_tmp():
     )
     
     if db(db.Debit_Credit_Transaction_Temporary.ticket_no_id == session.ticket_no_id).count() != 0:
-        response.js = "$('#btnsubmit').removeAttr('disabled')"
+        response.js = "$('#btnSubmit').removeAttr('disabled'), $('#dctTemp').get(0).reload()"
     else:
         response.js = "$('#btnsubmit').attr('disabled','disabled')"        
-    response.js="$('#dctTemp').get(0).reload()"
+    # response.js="$('#dctTemp').get(0).reload()"
 
 def id_generator():    
     return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6))

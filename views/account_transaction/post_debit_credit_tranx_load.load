@@ -1,9 +1,8 @@
-
 {{=table}}
-<div class="box-footer">
-    <div class="col-md-2">
+<div class="box-footer">    
+    <div class="col-md-2">        
         <div class="form-group">
-            <label>Account Code</label>
+            <label>Account Code</label>            
             <input type="text" class="form-control" id="account_code" name="account_code" placeholder="Account Code">
         </div>
     </div>
@@ -43,22 +42,23 @@
             <button type="submit" class="btn btn-block btn-success btn-flat" id="btnSend">Send</button>
         </div>
     </div>
+    
 </div>
 
 <script type="text/javascript">
 $(document).ready(function(){
     $("#date_from, #date_to").prop( "disabled", true );
-    if ($("#Debit_Credit_note_type").val() == "Stand Rent") {
+    if ($("#no_table_note_type").val() == "Stand Rent") {
         $("#date_from, #date_to" ).prop( "disabled", false );
     } else {
-        $("#Debit_Credit_brand_code_id").prop( "disabled", true );
+        $("#no_table_brand_code_id").prop( "disabled", true );
         $("#date_from, #date_to").val("");
     }
-    $("#Debit_Credit_note_type").change(function(){
-        if ($("#Debit_Credit_note_type").val() == "Stand Rent") {
+    $("#no_table_note_type").change(function(){
+        if ($("#no_table_note_type").val() == "Stand Rent") {
             $("#date_from, #date_to" ).prop( "disabled", false );
         } else {
-            $("#Debit_Credit_brand_code_id").prop( "disabled", true );
+            $("#no_table_brand_code_id").prop( "disabled", true );
             $("#date_from, #date_to").val("");
         }
     });
