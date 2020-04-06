@@ -13,7 +13,7 @@
                 <div class="box-body">
                     <div class="form-horizontal">
                         {{=form.custom.begin}}     
-                        <input type="text" class="form-control" id="ticket_no_id" name = "ticket_no_id" value="{{=ticket_no_id}}" hidden>
+                        <input type="hidden" class="form-control" id="ticket_no_id" name = "ticket_no_id" value="{{=ticket_no_id}}">
                         <div class="form-group">
                             <label class="col-sm-2 control-label">Serial Note No.</label>                            
                             <div class="col-sm-2"><input class="form-control" id="serial_note" name="serial_note" type="text" value={{=ctr}} readonly></div>                            
@@ -73,7 +73,7 @@
 <script type="text/javascript">
 $(document).ready(function(){
     $("#no_table_brand_code_id, #btnSubmit, #btnProceed").prop( "disabled", true );
-    // $("#tranx").hide();
+    $("#tranx").hide();
     $("#no_table_department_id, #no_table_business_unit, #no_table_transaction_type, #no_table_currency_id, #no_table_status_id, #no_table_note_type").change(function(){
         if ($("#no_table_department_id").val() && $("#no_table_business_unit").val() && $("#no_table_transaction_type").val() && $("#no_table_currency_id").val() && $("#no_table_status_id").val() && $("#no_table_note_type").val()) {            
             $("#btnProceed").prop( "disabled", false );

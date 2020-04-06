@@ -223,6 +223,7 @@ def post_debit_credit_note_form():
         db.Debit_Credit_Transaction_Temporary.amount.sum()
         _sum = db(db.Debit_Credit_Transaction_Temporary.ticket_no_id == str(request.vars.ticket_no_id)).select(db.Debit_Credit_Transaction_Temporary.amount.sum()).first()[db.Debit_Credit_Transaction_Temporary.amount.sum()]
         _query = db(db.Debit_Credit_Transaction_Temporary.ticket_no_id == str(request.vars.ticket_no_id)).select()
+        db(db.Transaction_Prefix.prefix_key == 'DCN').update(current_year_serial_key = _skey)
         db.Debit_Credit.insert(
             serial_note = _skey,
             department_id = form.vars.department_id,
