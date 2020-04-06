@@ -13,6 +13,7 @@
                 <div class="box-body">
                     <div class="form-horizontal">
                         {{=form.custom.begin}}     
+                        <input type="text" class="form-control" id="ticket_no_id" name = "ticket_no_id" value="{{=ticket_no_id}}" hidden>
                         <div class="form-group">
                             <label class="col-sm-2 control-label">Serial Note No.</label>                            
                             <div class="col-sm-2"><input class="form-control" id="serial_note" name="serial_note" type="text" value={{=ctr}} readonly></div>                            
@@ -29,14 +30,13 @@
                             <label class="col-sm-2 control-label">Transaction Type</label>
                             <div class="col-sm-4">{{=form.custom.widget.transaction_type}}</div>
                             <label class="col-sm-2 control-label">Note Type</label>
-                            <div class="col-sm-2">{{=form.custom.widget.note_type}}</div>                              
+                            <div class="col-sm-4">{{=form.custom.widget.note_type}}</div>                              
                         </div>
                         <div class="form-group">
                             <label class="col-sm-2 control-label">Currency</label>
-                            <div class="col-sm-2">{{=form.custom.widget.currency_id}}</div>
-                            
-                            <label class="col-sm-4 control-label">To</label>
-                            <div class="col-sm-2"><input class="form-control" id="Employee_Master_Leave_to_effective_date" name="to_effective_date" type="text" value={{=request.now.strftime('%m-%d-%Y')}} readonly></div>
+                            <div class="col-sm-4">{{=form.custom.widget.currency_id}}</div>                            
+                            <label class="col-sm-2 control-label">Brand Name</label>
+                            <div class="col-sm-4">{{=form.custom.widget.brand_code_id}}</div>
                         </div>
                         <div class="form-group">
                             <label class="col-sm-2 control-label">Remarks</label>
@@ -45,24 +45,54 @@
                             <div class="col-sm-4">{{=form.custom.widget.status_id}}</div>
                         </div>
                         <div class="form-group">
-                            <!-- <div class="col-sm-8"></div> -->
+                            
                             <label class="col-sm-8 control-label"></label>
                             <div class="col-sm-4">
                                 <input class="btn btn-primary btn-flat" type="submit" value="Submit" id="btnSubmit">
-                                <input class="btn btn-danger btn-flat" type="button" value="Abort" id="btnAbort">
-                            <!-- <input class="btn btn-success btn-flat" type="button" value="Leave History" id="btnHistory"> -->
-                                
+                                <input class="btn btn-success btn-flat" type="button" value="Proceed" id="btnProceed">                                                            
                             </div>
                         </div>
             
                         {{=form.custom.end}}        
                     </div>                    
-                </div>
+                </div>                
             </div>            
+        </div>
+    </div>
+    <div class="row" id="tranx">
+        <div class="col-xs-12">
+            <div class="box box-danger">
+                <div class="box-body">
+                    {{=LOAD('account_transaction','post_debit_credit_tranx_load.load',ajax = 'true', target = 'dctTemp')}}
+                </div>
+            </div>
         </div>
     </div>
 </section>
 
-<script>
+<script type="text/javascript">
+$(document).ready(function(){
+    $("#Debit_Credit_brand_code_id, #btnSubmit, #btnProceed").prop( "disabled", true );
+    // $("#tranx").hide();
+    $("#Debit_Credit_department_id, #Debit_Credit_business_unit, #Debit_Credit_transaction_type, #Debit_Credit_currency_id, #Debit_Credit_status_id").change(function(){
+        if ($("#Debit_Credit_department_id").val() && $("#Debit_Credit_business_unit").val() && $("#Debit_Credit_transaction_type").val() && $("#Debit_Credit_currency_id").val() && $("#Debit_Credit_status_id").val()) {            
+            $("#btnProceed").prop( "disabled", false );
+        } else {
+            $("#btnProceed").prop( "disabled", true );
+        }
+    });
+    $("#Debit_Credit_note_type").change(function(){
+        if ($("#Debit_Credit_note_type").val() == "Stand Rent") {
+            $("#Debit_Credit_brand_code_id" ).prop( "disabled", false );            
+        } else {
+            $("#Debit_Credit_brand_code_id").prop( "disabled", true );
+            $("#Debit_Credit_brand_code_id").val("");            
+        }
+    });
+
+    $("#btnProceed").click(function(){
+        $("#tranx").slideDown('slow');
+    });
+});
 </script>
 

@@ -1,0 +1,16 @@
+git fetch origin master
+git reset --hard origin/master
+
+https://adminlte.io/themes/AdminLTE/index.html
+
+server: 128.1.2.2-P@ssw0rd
+
+DEBIT/CREDIT NOTE
+ID  STATUS      =   ACTION REQUIRED         =   DESCRIPTION
+1.  Requested   -   For Accounts Approval   -   Default requestor
+2.  Rejected    -   For Further Notice      -   Rejected by Accts./Dept./Mngt.
+3.  Approved    -   For Dept.Approval       -   Accts. Approved.
+4.  Approved    -   For Mngt.Approval       -   Dept. Approved.
+5.  Approved    -   For Final Approval      -   Mngt. Approved.
+6.  Completed   -   Completed               -   Process Completed
+
