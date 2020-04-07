@@ -112,26 +112,6 @@ def load_payment_voucher_transaction_form():
         resopnse.flash = 'FORM HAS ERRORS'
     return dict(form = form, table = table)
 
-def get_debit_credit_note_grid():
-    row = []
-    ctr = 0
-    head = THEAD(TR(TH('#'),TH('Date'),TH('Serial Note'),TH('Department'),TH('Type'),TH('Status'),TH('Action Required'),TH('Action Control')))
-    _query = db().select(db.Debit_Credit.ALL)
-    for n in _query:
-        ctr+=1
-        row.apped(TR(
-            TD(ctr),
-            TD(n.transaction_date),
-            TD(n.serial_note),
-            TD(n.department_id),
-            TD(n.transaction_type),
-            TD(n.status_id),
-            TD()
-        ))
-    body = TBODY(*row)
-    table = TABLE(*[head, body], _class='table')
-    return dict(table = table)
-
 
 def get_department_grid():
     row = []    
@@ -206,6 +186,32 @@ def get_brand_grid():
     table = TABLE(*[thead, tbody], _class='table table-hover')
     return dict(form = form, table=table)   
 
+def get_debit_credit_note_grid():
+    row = []
+    ctr = 0
+    head = THEAD(TR(TH('#'),TH('Date'),TH('Serial Note'),TH('Department'),TH('Business Unit'),TH('Type'),TH('Status'),TH('Action Required'),TH('Action Control')))
+    _query = db().select(db.Debit_Credit.ALL)
+    for n in _query:
+        ctr+=1
+        view_lnk = A(I(_class='fa fa-search'), _title='View Row', _type='button  ', _role='button', _class='btn btn-icon-toggle', _href=URL('account_transaction','get_debit_credit_note_id', args = n.id))
+        edit_lnk = A(I(_class='fa fa-pencil'), _title='Edit Row', _type='button  ', _role='button', _class='btn btn-icon-toggle', _href = (URL('account_transaction','put_debit_credit_note_id', args = n.id)))         
+        dele_lnk = A(I(_class='fa fa-trash'), _title='Delete Row', _type='button  ', _role='button', _class='btn btn-icon-toggle disabled', _href=URL('#', args = n.id))        
+        btn_lnk = DIV(view_lnk, edit_lnk, dele_lnk)
+
+        row.append(TR(
+            TD(ctr),
+            TD(n.transaction_date),
+            TD('DCN',n.serial_note),
+            TD(n.department_id.department_code,' - ',n.department_id.department_name),
+            TD(n.business_unit.business_name),
+            TD(n.transaction_type),
+            TD(n.status_id.status),
+            TD(n.status_id.action_required),
+            TD(btn_lnk)))
+    body = TBODY(*row)
+    table = TABLE(*[head, body], _class='table')
+    return dict(table = table)
+
 def post_debit_credit_note_form():
     ticket_no_id = id_generator()
     session.ticket_no_id = ticket_no_id
@@ -238,7 +244,7 @@ def post_debit_credit_note_form():
             total_amount = _sum,
             ticket_no = request.vars.ticket_no_id
         )
-        print 'insert: ', _skey, _sum, request.vars.ticket_no_id
+        # print 'insert: ', _skey, _sum, request.vars.ticket_no_id
     elif form.errors:
         response.flash = 'FORM HAS ERROR'        
     return dict(form = form, ctr = str('DCN%s') % (_skey), ticket_no_id = ticket_no_id)
@@ -261,10 +267,35 @@ def post_debit_credit_tranx_load():
         resposne.flash = 'FORM HAS ERROR'
     return dict(table = table, form = form)
 
-def put_del_tmp():    
-    # print 'delete'
-    db(db.Debit_Credit_Transaction_Temporary.id == request.args(0)).delete()
-    # response.js="$('#del').parent('div').parent('td').parent('tr').fadeOut('slow');"
+def put_debit_credit_note_id():
+    _row = db(db.Debit_Credit.id == request.args(0)).select().first()
+    db.Debit_Credit.status_id.requires = IS_IN_DB(db(db.Note_Status.id == 1), db.Note_Status.id, '%(status)s', zero = 'Choose Status')
+    db.Debit_Credit.status_id.default = 1
+    form = SQLFORM(db.Debit_Credit, request.args(0))
+    if form.process().accepted:
+        response.flash = 'FORM UPDATED'
+    elif form.errors:
+        response.flash = 'FORM HAS ERROR'
+    return dict(form = form, row = _row)
+
+def put_debit_credit_tranx_load():
+    _id = db(db.Debit_Credit.id == request.args(0)).select().first()    
+    row = []
+    ctr = 0
+    head = THEAD(TR(TH('#'),TH('Account Code'),TH('Description'),TH('Description'),TH('Date From'),TH('Date To'),TH('Amount'),TH('Action')))
+    for n in db(db.Debit_Credit_Transaction_Temporary.ticket_no_id == str(_id.ticket_no)).select(db.Debit_Credit_Transaction_Temporary.ALL):
+        ctr += 1        
+        dele_lnk = A(I(_class='fa fa-trash'), _title='Delete Row', _type='button  ', _role='button', _class='btn btn-icon-toggle', delete='tr',_id='del',callback=URL('put_del_tmp', args = n.id,extension=False))        
+        btn_lnk = DIV(dele_lnk)                
+        row.append(TR(TD(ctr),TD(n.account_code),TD(n.description_1),TD(n.description_2),TD(n.date_from),TD(n.date_to),TD(n.amount),TD(btn_lnk)))
+    body = TBODY(*row)
+    table = TABLE(*[head, body], _class='table',_id='dctTemp')
+    form = SQLFORM(db.Debit_Credit_Transaction_Temporary)
+    if form.process().accepted:
+        response.flash = 'FORM SAVE'
+    elif form.errors:
+        resposne.flash = 'FORM HAS ERROR'
+    return dict(table = table, form = form)
 
 def post_debit_credit_tranx_tmp():
     # print 'send...', request.vars.account_code,request.vars.description_1,request.vars.description_2,request.vars.date_from,request.vars.date_to,request.vars.amount
@@ -283,6 +314,17 @@ def post_debit_credit_tranx_tmp():
     else:
         response.js = "$('#btnsubmit').attr('disabled','disabled')"        
     # response.js="$('#dctTemp').get(0).reload()"
+
+def get_debit_credit_note_id():
+    _row = db(db.Debit_Credit.id == request.args(0)).select().first()
+    return dict(row = _row)
+
+def get_debit_credit_trnax_tmp():
+    return dict()
+def put_del_tmp():    
+    # print 'delete'
+    db(db.Debit_Credit_Transaction_Temporary.id == request.args(0)).delete()
+    # response.js="$('#del').parent('div').parent('td').parent('tr').fadeOut('slow');"
 
 def id_generator():    
     return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6))

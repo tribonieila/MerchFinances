@@ -7,6 +7,7 @@
 from gluon.contrib.appconfig import AppConfig
 from gluon.tools import Auth
 
+
 # -------------------------------------------------------------------------
 # This scaffolding model makes your app work on Google App Engine too
 # File is released under public domain and you can use without limitations
@@ -154,12 +155,15 @@ if configuration.get('scheduler.enabled'):
 # -------------------------------------------------------------------------
 # auth.enable_record_versioning(db)
 db = DAL('postgres://postgres:admin@localhost:5432/m3rch_finances_db')
-# crud = Crud(globals(),db)
+d2 = DAL('postgres://postgres:admin@localhost:5432/Merch_HRM_DB',migrate=False,fake_migrate_all=True,do_connect=True)
+
 # db2 = DAL('postgres://postgres:admin@localhost:5432/mpc_inv', pool_size=0, migrate = False)
 # db = DAL("mssql4://SA:M3rch2018@localhost:1433/m3rch_hr_db?driver={ODBC Driver 17 for SQL Server}", pool_size = 0) # production
 auth = Auth(globals(),db)
+
 # auth.settings.actions_disabled=['register', 'request_reset_password','retrieve_username']
 # if request.controller != 'appadmin': auth.settings.actions_disabled +=['register']
+
 db.define_table(
     auth.settings.table_user_name,
     Field('first_name', length=128),
@@ -180,3 +184,47 @@ custom_auth_table.email.requires =   IS_EMAIL(error_message=auth.messages.invali
 
 auth.settings.table_user = custom_auth_table # tell auth to use custom_auth_table
 auth.define_tables(username = True)
+
+d2.define_table(
+    auth.settings.table_user_name,
+    Field('first_name', length=128),
+    Field('last_name', length=128),
+    Field('username', unique = True, readable = False),
+    Field('email', length=128), # required
+    Field('password', 'password', length=512,readable=False, label='Password'), # required
+    Field('registration_key', length=512, writable=False, readable=False, default=''),# required
+    Field('reset_password_key', length=512,writable=False, readable=False, default=''),# required
+    Field('registration_id', length=512, writable=False, readable=False, default=''), format = '%(first_name)s %(last_name)s')# required
+
+d2.define_table('auth_group',
+    Field('role','string'),
+    Field('description','text'))
+
+d2.define_table('auth_membership',
+    Field('user_id','reference auth_user',ondelete='NO ACTION'),
+    Field('group_id','reference auth_group',ondelete='NO ACTION'))
+# print '-- ** --'
+for n in d2().select(orderby = d2.auth_user.id): # copy all username from hr_db to fin_db
+    _id = db(db.auth_user.id == n.id).select().first()
+    if _id:
+        _id.update_record(first_name=n.first_name,last_name=n.last_name,username=n.username,email=n.email,password=n.password)
+    else:        
+        db.auth_user.insert(first_name=n.first_name,last_name=n.last_name,username=n.username,email=n.email,password=n.password)
+
+for n in d2().select(orderby = d2.auth_group.id): # copy all group name from hr_db to fin_db
+    _id = db(db.auth_group.id == n.id).select().first()
+    if _id:
+        # print 'true'
+        _id.update_record(role=n.role,description=n.description)
+    else:
+        # print 'false',#n.id
+        db.auth_group.insert(role=n.role,description=n.description)
+
+for n in d2().select(orderby = d2.auth_membership.id): # copy all memberships from hr_db to fin_db
+    _id = db(db.auth_membership.id == n.id).select().first()
+    if _id:
+        _id.update_record(user_id=n.user_id,group_id=n.group_id)
+    else:
+        db.auth_membership.insert(user_id=n.user_id,group_id=n.group_id)
+
+# print d2.auth_user
