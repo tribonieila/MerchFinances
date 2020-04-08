@@ -22,35 +22,101 @@
                         </div>                   
                         <div class="form-group">
                             <label class="col-sm-2 control-label">Department</label>
-                            <div class="col-sm-4"><input class="form-control"  name="department_id" value={{=row.department_id.department_name}} readonly></div>    
+                            <div class="col-sm-4"><input class="form-control"  name="department_id" value="{{=row.department_id.department_name}}" readonly></div>    
                             <label class="col-sm-2 control-label">Business Unit</label>
-                            <div class="col-sm-4"><input class="form-control"  name="business_unit" id="business_unit" value={{=row.business_unit.business_name}} readonly></div>
+                            <div class="col-sm-4"><input class="form-control"  name="business_unit" id="business_unit" value="{{=row.business_unit.business_name}}" readonly></div>
                         </div>
                         <div class="form-group">
                             <label class="col-sm-2 control-label">Transaction Type</label>
-                            <div class="col-sm-4"><input class="form-control"  type="text" value={{=row.transaction_type}} readonly></div>
+                            <div class="col-sm-4"><input class="form-control"  type="text" value="{{=row.transaction_type}}" readonly></div>
                             <label class="col-sm-2 control-label">Note Type</label>
-                            <div class="col-sm-4"><input class="form-control" value={{=row.note_type}} readonly></div>                              
+                            <div class="col-sm-4"><input class="form-control" value="{{=row.note_type}}" readonly></div>                              
                         </div>
                         <div class="form-group">
                             <label class="col-sm-2 control-label">Currency</label>
-                            <div class="col-sm-4"><input class="form-control"  type="text" value={{=row.currency_id.mnemonic}} readonly></div>                            
+                            <div class="col-sm-4"><input class="form-control"  type="text" value="{{=row.currency_id.mnemonic}}" readonly></div>                            
                             <label class="col-sm-2 control-label">Brand Name</label>
-                            <div class="col-sm-4"><input class="form-control"  type="text" value={{=row.brand_code_id.brand_name}} readonly></div>
+                            <div class="col-sm-4"><input class="form-control"  type="text" value="{{=row.brand_code_id.brand_name}}" readonly></div>
                         </div>
                         <div class="form-group">
                             <label class="col-sm-2 control-label">Remarks</label>
-                            <div class="col-sm-4"><input class="form-control"  type="text" value={{=row.remarks}} readonly></div>        
+                            <div class="col-sm-4"><input class="form-control"  type="text" value="{{=row.remarks}}" readonly></div>        
                             <label class="col-sm-2 control-label">Status</label>
-                            <div class="col-sm-4"><input class="form-control"  type="text" value={{=row.status_id.status}} readonly></div>
+                            <div class="col-sm-4"><input class="form-control"  type="text" value="{{=row.status_id.status}}" readonly></div>
                         </div>
                         <div class="form-group">
-                            
-                            <label class="col-sm-8 control-label"></label>
+                            <label class="col-sm-2 control-label">Acct. Remarks</label>
                             <div class="col-sm-4">
-                                <input class="btn btn-primary btn-flat" type="submit" value="Submit" id="btnSubmit">
-                                <input class="btn btn-danger btn-flat" type="button" value="Cancel" id="btnCancel">                                                            
+                                {{ if auth.has_membership(role = 'ACCOUNTS MANAGER'): }}
+                                    <div class="input-group">                                
+                                        <input text="text" class="form-control" name="account_remarks" placeholder="type your remarks here..."  value="{{=row.account_remarks}}">
+                                        <span class="input-group-addon btn btn-primary" id="btnAcctRemarks">Send</span>
+                                    </div>                                                                   
+                                {{ else: }}
+                                    <input text="text" class="form-control" name="account_remarks" value="{{=row.account_remarks}}" readonly>
+                                {{ pass }}
+                            </div>        
+                            <label class="col-sm-2 control-label"></label>
+                            <div class="col-sm-4">                                  
+                                {{ if auth.has_membership(role = 'ACCOUNTS MANAGER'): }}
+                                    {{ if (row.status_id == 3):}}
+                                        <input class="btn btn-primary btn-flat" type="button" value="Approved" id="btnAcctAppr"  disabled="true">
+                                        <input class="btn btn-danger btn-flat" type="button" value="Reject" id="btnReject" disabled="true">                                                            
+                                    {{ else: }}
+                                        <input class="btn btn-primary btn-flat" type="button" value="Approved" id="btnAcctAppr">
+                                        <input class="btn btn-danger btn-flat" type="button" value="Reject" id="btnReject">                                                            
+                                    {{ pass }}
+                                {{ elif auth.has_membership(role = 'DEPARTMENT MANAGERS'): }}
+                                    {{ if (row.status_id == 4):}}
+                                        <input class="btn btn-primary btn-flat" type="button" value="Approved" id="btnAcctAppr"  disabled="true">
+                                        <input class="btn btn-danger btn-flat" type="button" value="Reject" id="btnReject" disabled="true">                                                            
+                                    {{ else: }}
+                                        <input class="btn btn-primary btn-flat" type="button" value="Approved" id="btnAcctAppr">
+                                        <input class="btn btn-danger btn-flat" type="button" value="Reject" id="btnReject">                                                            
+                                    {{ pass }}
+                                {{ elif auth.has_membership(role = 'MANAGEMENT'): }}
+                                    {{ if (row.status_id == 5):}}
+                                        <input class="btn btn-primary btn-flat" type="button" value="Approved" id="btnAcctAppr"  disabled="true">
+                                        <input class="btn btn-danger btn-flat" type="button" value="Reject" id="btnReject" disabled="true">                                                            
+                                    {{ else: }}
+                                        <input class="btn btn-primary btn-flat" type="button" value="Approved" id="btnAcctAppr">
+                                        <input class="btn btn-danger btn-flat" type="button" value="Reject" id="btnReject">                                                            
+                                    {{ pass }}
+                                {{ else: }}
+                                    <input class="btn btn-primary btn-flat" type="submit" value="Submit" id="btnSubmit">
+                                    <input class="btn btn-danger btn-flat" type="button" value="Cancel" id="btnCancel">                                                            
+                                {{ pass }}
                             </div>
+                        </div>                        
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">Dept. Remarks</label>
+                            <div class="col-sm-4">
+                            {{ if auth.has_membership(role = 'DEPARTMENT MANAGERS'): }}                            
+                                <div class="input-group">                                
+                                    <input text="text" class="form-control" name="department_remarks" placeholder="type your remarks here..."  value="{{=row.department_remarks}}">
+                                    <span class="input-group-addon btn btn-primary" id="btnDeptRemarks">Send</span>
+                                </div>                                
+                            {{ else: }}                                
+                                <input text="text" class="form-control" name="department_remarks" placeholder="type your remarks here..."  value="{{=row.department_remarks}}" readonly>                                
+                            {{ pass }}
+                            </div>
+                        </div>                        
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">Mngt. Remarks</label>
+                            <div class="col-sm-4">
+                            {{ if auth.has_membership(role = 'MANAGEMENT'): }}
+                                <div class="input-group">                                
+                                    <input text="text" class="form-control" name="management_remakrs" placeholder="type your remarks here..."  value="{{=row.management_remakrs}}">
+                                    <span class="input-group-addon btn btn-primary" id="btnMngtRemarks">Send</span>
+                                </div>                                                            
+                            {{ else: }}                            
+                                <input class="form-control"  type="text" value="{{=row.management_remakrs}}" readonly>
+                            {{ pass }}
+                            </div>        
+                        </div>                        
+
+                        <div class="form-group">                            
+
                         </div>
             
                         
@@ -72,25 +138,27 @@
 
 <script type="text/javascript">
 $(document).ready(function(){        
-    $("#no_table_department_id, #no_table_business_unit, #no_table_transaction_type, #no_table_currency_id, #no_table_status_id, #Debit_Credit_note_type").change(function(){
-        if ($("#no_table_department_id").val() && $("#no_table_business_unit").val() && $("#no_table_transaction_type").val() && $("#no_table_currency_id").val() && $("#no_table_status_id").val() && $("#Debit_Credit_note_type").val()) {            
-            $("#btnProceed").prop( "disabled", false );
-        } else {
-            $("#btnProceed").prop( "disabled", true );
-        }
+    $("#btnAcctRemarks").click(function(){        
+        ajax("{{=URL('account_transaction','put_debit_credit_note_remarks_id',args = request.args(0))}}",['account_remarks'])
     });
-    $("#Debit_Credit_note_type").change(function(){
-        if ($("#Debit_Credit_note_type").val() == "Stand Rent") {
-            $("#Debit_Credit_brand_code_id" ).prop( "disabled", false );            
-        } else {
-            $("#Debit_Credit_brand_code_id").prop( "disabled", true );
-            $("#Debit_Credit_brand_code_id").val("");            
-        }
+    
+    $("#btnDeptRemarks").click(function(){        
+        ajax("{{=URL('account_transaction','put_debit_credit_note_remarks_id',args = request.args(0))}}",['department_remarks'])
     });
 
-    $("#btnProceed").click(function(){
-        $("#tranx").slideDown('slow');
+    $("#btnMngtRemarks").click(function(){        
+        ajax("{{=URL('account_transaction','put_debit_credit_note_remarks_id',args = request.args(0))}}",['management_remakrs'])
     });
+
+    $("#btnAcctAppr").click(function(){        
+        ajax("{{=URL('account_transaction','put_debit_credit_note_approved_id',args = request.args(0))}}")
+    });
+
+    $("#btnReject").click(function(){
+        console.log("Reject")
+        ajax("{{=URL('account_transaction','put_debit_credit_note_reject_id',args = request.args(0))}}")
+    });
+
 });
 </script>
 

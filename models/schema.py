@@ -1,6 +1,6 @@
 db.define_table('Transaction_Prefix',
     Field('prefix', length = 10, requires = [IS_UPPER(), IS_NOT_EMPTY()]), 
-    Field('prefix_name','string', length = 30, requires = [IS_UPPER(), IS_NOT_EMPTY()]),    
+    Field('prefix_name','string', requires = [IS_UPPER(), IS_NOT_EMPTY()]),    
     Field('current_year_serial_key', 'integer'),
     Field('previous_year_serial_key', 'integer', writable = False),
     Field('prefix_key','string', length = 10, requires = [IS_UPPER(), IS_NOT_EMPTY()]), 
@@ -32,6 +32,14 @@ db.define_table('Department',
     Field('created_by', db.auth_user, ondelete = 'NO ACTION', default=auth.user_id, writable = False, readable = False),
     Field('updated_on', 'datetime', update=request.now, writable = False, readable = False),
     Field('updated_by', db.auth_user, ondelete = 'NO ACTION', update=auth.user_id, writable = False, readable = False),format = '%(department_code)s')
+
+db.define_table('Department_Head_Assignment',
+    Field('users_id', db.auth_user, ondelete = 'NO ACTION'),    
+    Field('department_id','reference Department',ondelete='NO ACTION',requires=IS_IN_DB(db,db.Department.id,'%(department_code)s - %(department_name)s',zero='Choose Department')),    
+    Field('created_on', 'datetime', default=request.now, writable = False, readable = False),
+    Field('created_by', db.auth_user, ondelete = 'NO ACTION', default=auth.user_id, writable = False, readable = False),
+    Field('updated_on', 'datetime', update=request.now, writable = False, readable = False),
+    Field('updated_by', db.auth_user, ondelete = 'NO ACTION', update=auth.user_id, writable = False, readable = False))
 
 db.define_table('Account_Voucher', #ondelete = 'NO ACTION', requires = IS_IN_DB(db, db.Department.id, '%(department_code)s - %(department_name)s', zero = 'Choose Department')),
     Field('account_transaction_code_id','reference Account_Transaction_Type',ondelete='NO ACTION',requires=IS_IN_DB(db,db.Account_Transaction_Type.id,'%(account_transaction_code)',zero='Choose Account Code')),

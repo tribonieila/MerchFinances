@@ -12,8 +12,8 @@
                 </div>
                 <div class="box-body">
                     <div class="form-horizontal">
-                        {{=form.custom.begin}}     
-                        
+                        {{=form.custom.begin}}      
+                        <!-- <input class="form-control" id="ticket_no" name="ticket_no" type="text" value={{=row.ticket_no}} readonly> -->
                         <div class="form-group">
                             <label class="col-sm-2 control-label">Serial Note No.</label>                            
                             <div class="col-sm-2"><input class="form-control" id="serial_note" name="serial_note" type="text" value={{=row.serial_note}} readonly></div>                            
@@ -90,6 +90,14 @@ $(document).ready(function(){
 
     $("#btnProceed").click(function(){
         $("#tranx").slideDown('slow');
+    });
+
+    $("#btnCancel").click(function(){        
+        alertify.alert('Debit/Credit Note', 'Are you sure you want to cancel this application?', 
+            function(){ 
+                alertify.success('Ok'); 
+            });
+        console.log("Cancel");
     });
 });
 </script>
