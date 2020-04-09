@@ -34,9 +34,9 @@
                         </div>
                         <div class="form-group">
                             <label class="col-sm-2 control-label">Currency</label>
-                            <div class="col-sm-4"><input class="form-control"  type="text" value="{{=row.currency_id.mnemonic}}" readonly></div>                            
+                            <div class="col-sm-4"><input class="form-control"  type="text" value="{{=row.currency_id.mnemonic}} - {{=row.currency_id.description}}" readonly></div>                            
                             <label class="col-sm-2 control-label">Brand Name</label>
-                            <div class="col-sm-4"><input class="form-control"  type="text" value="{{=row.brand_code_id.brand_name}}" readonly></div>
+                            <div class="col-sm-4"><input class="form-control"  type="text" value="{{=row.brand_code_id.brand_code}} - {{=row.brand_code_id.brand_name}}" readonly></div>
                         </div>
                         <div class="form-group">
                             <label class="col-sm-2 control-label">Remarks</label>
@@ -83,8 +83,15 @@
                                         <input class="btn btn-danger btn-flat" type="button" value="Reject" id="btnReject">                                                            
                                     {{ pass }}
                                 {{ else: }}
-                                    <input class="btn btn-primary btn-flat" type="submit" value="Submit" id="btnSubmit">
-                                    <input class="btn btn-danger btn-flat" type="button" value="Cancel" id="btnCancel">                                                            
+                                    {{ if (row.status_id == 5): }}
+                                        <input class="btn btn-primary btn-flat" type="submit" value="Submit" id="btnSubmit" disabled="true">
+                                        <input class="btn btn-danger btn-flat" type="button" value="Cancel" id="btnCancel" disabled="true">                                                            
+
+                                    {{ else: }}
+                                        <input class="btn btn-primary btn-flat" type="submit" value="Submit" id="btnSubmit">
+                                        <input class="btn btn-danger btn-flat" type="button" value="Cancel" id="btnCancel">                                                            
+
+                                    {{ pass }}
                                 {{ pass }}
                             </div>
                         </div>                        
@@ -129,7 +136,12 @@
         <div class="col-xs-12">
             <div class="box box-danger">
                 <div class="box-body">
-                    {{=LOAD('account_transaction','get_debit_credit_trnax_tmp.load',ajax = 'true', args = request.args(0), target = 'dctTemp')}}
+                    {{ if db(db.Debit_Credit_Transaction.serial_note_id == int(request.args(0))).select(db.Debit_Credit_Transaction.serial_note_id).first() == int(request.args(0)): }}
+                        {{=LOAD('account_transaction','get_debit_credit_trnax_tmp.load',ajax = 'true', args = request.args(0), target = 'dctTemp')}}
+                    {{ else: }}                        
+                        {{=LOAD('account_transaction','get_debit_credit_trnax.load',ajax = 'true', args = request.args(0), target = 'dctTrnx')}}
+                        
+                    {{ pass }}
                 </div>
             </div>
         </div>

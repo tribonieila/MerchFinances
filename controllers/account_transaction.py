@@ -386,15 +386,36 @@ def get_debit_credit_trnax_tmp():
     for n in db(db.Debit_Credit_Transaction_Temporary.ticket_no_id == str(_id.ticket_no)).select(db.Debit_Credit_Transaction_Temporary.ALL):
         ctr += 1        
         _total_amount += n.amount
-        dele_lnk = A(I(_class='fa fa-trash'), _title='Delete Row', _type='button  ', _role='button', _class='btn btn-icon-toggle disabled', delete='tr',_id='del',callback=URL('put_del_tmp', args = n.id,extension=False))        
+        dele_lnk = A(I(_class='fa fa-trash'), _title='Delete Row', _type='button  ', _role='button', _class='btn btn-icon-toggle disabled', delete='tr',_id='del',callback=URL('put_del_tmp', args = n.id,extension=False))                
         btn_lnk = DIV(dele_lnk)                
         row.append(TR(TD(ctr),TD(n.account_code),TD(n.description_1),TD(n.description_2),TD(n.date_from),TD(n.date_to),TD(n.amount),TD(btn_lnk)))
     
     body = TBODY(*row)
     foot = TFOOT(TR(TD(_colspan="5"),TD('TOTAL AMOUNT: '),TD(_total_amount),TD()))
     table = TABLE(*[head, body, foot], _class='table',_id='dctTemp')
+    print 'get_debit_credit_trnax_tmp'
     return XML(table)
+ 
+def get_debit_credit_trnax():
+    _id = db(db.Debit_Credit.id == request.args(0)).select().first()    
+    row = []
+    ctr = _total_amount = 0
 
+    head = THEAD(TR(TH('#'),TH('Account Code'),TH('Description'),TH('Description'),TH('Date From'),TH('Date To'),TH('Amount'),TH('Action')))
+    for n in db(db.Debit_Credit_Transaction.serial_note_id == int(request.args(0))).select(db.Debit_Credit_Transaction.ALL):
+        ctr += 1        
+        _total_amount += n.amount
+        dele_lnk = A(I(_class='fa fa-trash'), _title='Delete Row', _type='button  ', _role='button', _class='btn btn-icon-toggle disabled', delete='tr',_id='del',callback=URL('put_del_tmp', args = n.id,extension=False))        
+        prin_lnk = A(I(_class='fa fa-print'), _title='Print', _type='button ', _role='button', _target='_blank', _class='btn btn-icon-toggle')
+        btn_lnk = DIV(dele_lnk, prin_lnk)
+        row.append(TR(TD(ctr),TD(n.account_code),TD(n.description_1),TD(n.description_2),TD(n.date_from),TD(n.date_to),TD(n.amount),TD(btn_lnk)))
+    
+    body = TBODY(*row)
+    foot = TFOOT(TR(TD(_colspan="5"),TD('TOTAL AMOUNT: '),TD(_total_amount),TD()))
+    table = TABLE(*[head, body, foot], _class='table',_id='dctTrnx')
+    print 'get_debit_credit_trnax'
+    return XML(table)
+ 
 def put_del_tmp():        
     db(db.Debit_Credit_Transaction_Temporary.id == request.args(0)).delete()
     response.js = "$('#dctTemp').get(0).reload()"
