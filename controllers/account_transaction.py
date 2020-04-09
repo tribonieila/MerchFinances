@@ -216,7 +216,7 @@ def get_debit_credit_note_grid():
     row = []
     ctr = 0
     head = THEAD(TR(TH('#'),TH('Date'),TH('Serial Note'),TH('Department'),TH('Business Unit'),TH('Type'),TH('Status'),TH('Action Required'),TH('Action Control')))
-    if auth.has_membership('BACK OFFICE DEPARTMENT'):
+    if auth.has_membership('BACK OFFICE DEPARTMENT'): # accounts users as requestor
         _query = db(db.Debit_Credit.created_by == auth.user_id).select(db.Debit_Credit.ALL)    
     elif auth.has_membership('ACCOUNTS'):
         _query = db(db.Debit_Credit.status_id == 3).select(db.Debit_Credit.ALL)    
@@ -401,14 +401,46 @@ def put_del_tmp():
     # response.js="$('#del').parent('div').parent('td').parent('tr').fadeOut('slow');"
 
 def put_debit_credit_note_approved_id():
+    _id = db(db.Debit_Credit.id == request.args(0)).select().first()
     if auth.has_membership('ACCOUNTS MANAGER'):
         db(db.Debit_Credit.id == request.args(0)).update(status_id = 3)
     elif auth.has_membership('DEPARTMENT MANAGERS'):
         db(db.Debit_Credit.id == request.args(0)).update(status_id = 4)
     elif auth.has_membership('MANAGEMENT'):
         db(db.Debit_Credit.id == request.args(0)).update(status_id = 5)
-    else:
-        print 'else'
+        if _id.transaction_type == "Debit Note": # debit note
+            if _id.business_unit == 1: # business unit 'Merch & Partners WLL'
+                _px = db(db.Transaction_Prefix.prefix_key == 'DMP').select().first()                
+                process(_px.prefix, _px.current_year_serial_key, _px.id)
+            else: # business unit 'Merch Trading Company'
+                _px = db(db.Transaction_Prefix.prefix_key == 'DMT').select().first()
+                process(_px.prefix, _px.current_year_serial_key, _px.id)
+        else: # credit note
+            if _id.business_unit == 1: # business unit 'Merch & Partners WLL'
+                _px = db(db.Transaction_Prefix.prefix_key == 'CMP').select().first()
+                process(_px.prefix, _px.current_year_serial_key, _px.id)
+            else: # business unit 'Merch Trading Company'
+                _px = db(db.Transaction_Prefix.prefix_key == 'CMT').select().first()
+                process(_px.prefix, _px.current_year_serial_key, _px.id)
+        redirect(URL('account_transaction','get_debit_credit_note_grid'))
+
+def process(x, y, z):
+    _id = db(db.Debit_Credit.id == request.args(0)).select().first()
+    _query = db(db.Debit_Credit_Transaction_Temporary.ticket_no_id == str(_id.ticket_no)).select()    
+    for n in _query:        
+        y+=1        
+        _tnx = str(x)+str(y)
+        db.Debit_Credit_Transaction.insert(
+            serial_note_id = _id.id,
+            transaction_no = _tnx,
+            account_code = n.account_code,
+            description_1 = n.description_1,
+            description_2 = n.description_2,
+            date_from = n.date_from,
+            date_to = n.date_to,
+            amount =  n.amount)
+    db(db.Transaction_Prefix.id == int(z)).update(current_year_serial_key = y) # updated prefix transaction
+    db(db.Debit_Credit_Transaction_Temporary.ticket_no_id == str(_id.ticket_no)).delete() 
 
 def put_debit_credit_note_reject_id():
     db(db.Debit_Credit.id == request.args(0)).update(status_id = 2)

@@ -149,6 +149,7 @@ db.define_table('Debit_Credit',
 
 db.define_table('Debit_Credit_Transaction',
     Field('serial_note_id','reference Debit_Credit',ondelete='NO ACTION',writable=False,readable=False),
+    Field('transaction_no','string',length=20),
     Field('account_code'),
     Field('description_1','string'),
     Field('description_2','string'),
