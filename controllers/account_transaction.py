@@ -210,7 +210,7 @@ def get_department_head_grid():
     table = TABLE(*[thead, tbody], _class='table table-hover')
     return dict(form = form, table=table)   
 
-@auth.requires(lambda: auth.has_membership('BACK OFFICE DEPARTMENT') | auth.has_membership('ACCOUNTS') | auth.has_membership('DEPARTMENT MANAGERS') |  auth.has_membership('MANAGEMENT') |  auth.has_membership('ROOT'))
+@auth.requires(lambda: auth.has_membership('BACK OFFICE DEPARTMENT') | auth.has_membership('ACCOUNTS') | auth.has_membership('DEPARTMENT MANAGERS') |  auth.has_membership('ACCOUNTS MANAGER')|  auth.has_membership('MANAGEMENT') |  auth.has_membership('ROOT'))
 def get_debit_credit_note_grid():
     _headD = db(db.Department_Head_Assignment.users_id == auth.user_id).select().first()
     row = []
@@ -218,8 +218,10 @@ def get_debit_credit_note_grid():
     head = THEAD(TR(TH('#'),TH('Date'),TH('Serial Note'),TH('Department'),TH('Business Unit'),TH('Type'),TH('Status'),TH('Action Required'),TH('Action Control')))
     if auth.has_membership('BACK OFFICE DEPARTMENT'): # accounts users as requestor
         _query = db(db.Debit_Credit.created_by == auth.user_id).select(db.Debit_Credit.ALL)    
+    elif auth.has_membership('ACCOUNTS MANAGER'):
+        _query = db(db.Debit_Credit.status_id == 1).select(db.Debit_Credit.ALL)
     elif auth.has_membership('ACCOUNTS'):
-        _query = db(db.Debit_Credit.status_id == 3).select(db.Debit_Credit.ALL)    
+        _query = db(db.Debit_Credit.status_id == 1).select(db.Debit_Credit.ALL)
     elif auth.has_membership('DEPARTMENT MANAGERS'):
         _query = db((db.Debit_Credit.department_id == _headD.department_id) & (db.Debit_Credit.status_id == 3)).select(db.Debit_Credit.ALL)
     elif auth.has_membership('MANAGEMENT'):
@@ -381,11 +383,12 @@ def get_debit_credit_trnax_tmp():
     _id = db(db.Debit_Credit.id == request.args(0)).select().first()    
     row = []
     ctr = _total_amount = 0
-
+    print 'od', request.args(0)
     head = THEAD(TR(TH('#'),TH('Account Code'),TH('Description'),TH('Description'),TH('Date From'),TH('Date To'),TH('Amount'),TH('Action')))
     for n in db(db.Debit_Credit_Transaction_Temporary.ticket_no_id == str(_id.ticket_no)).select(db.Debit_Credit_Transaction_Temporary.ALL):
         ctr += 1        
         _total_amount += n.amount
+        print 'get_debit_credit_trnax_tmp', n.ticket_no_id
         dele_lnk = A(I(_class='fa fa-trash'), _title='Delete Row', _type='button  ', _role='button', _class='btn btn-icon-toggle disabled', delete='tr',_id='del',callback=URL('put_del_tmp', args = n.id,extension=False))                
         btn_lnk = DIV(dele_lnk)                
         row.append(TR(TD(ctr),TD(n.account_code),TD(n.description_1),TD(n.description_2),TD(n.date_from),TD(n.date_to),TD(n.amount),TD(btn_lnk)))
