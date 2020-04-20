@@ -293,6 +293,10 @@ def post_debit_credit_note_form():
         response.flash = 'FORM HAS ERROR'        
     return dict(form = form, ctr = str('DCN%s') % (_skey), ticket_no_id = ticket_no_id)
 
+def validate_trnx_load(form):
+    form.vars.ticket_no_id = request.args(0)
+    print 'request.vars.ticket_no_id:', request.args(0)
+
 def post_debit_credit_tranx_load():
     row = []
     ctr = _total_amount = 0
@@ -307,8 +311,12 @@ def post_debit_credit_tranx_load():
     foot = TFOOT(TR(TD(_colspan="5"),TD('TOTAL AMOUNT: '),TD(_total_amount),TD()))
     table = TABLE(*[head, body, foot], _class='table',_id='dctTemp')
     form = SQLFORM(db.Debit_Credit_Transaction_Temporary)
-    if form.process().accepted:
+    if form.process(onvalidation = validate_trnx_load).accepted:
         response.flash = 'FORM SAVE'
+        # response.js = '$("#dctTemp").get(0).reload()'
+        if db(db.Debit_Credit_Transaction_Temporary.ticket_no_id == session.ticket_no_id).count() != 0:
+            response.js = "$('#btnSubmit').removeAttr('disabled'), $('#dctTemp').get(0).reload()"
+        
     elif form.errors:
         resposne.flash = 'FORM HAS ERROR'
     return dict(table = table, form = form)
@@ -346,6 +354,9 @@ def put_debit_credit_tranx_load():
     return dict(table = table, form = form)
 
 def post_debit_credit_tranx_tmp():
+    print 'send...', request.vars.account_code,request.vars.description_1,request.vars.description_2,request.vars.date_from,request.vars.date_to,request.vars.amount
+
+def post_debit_credit_tranx_tmp_():
     # print 'send...', request.vars.account_code,request.vars.description_1,request.vars.description_2,request.vars.date_from,request.vars.date_to,request.vars.amount
     db.Debit_Credit_Transaction_Temporary.insert(
         account_code = request.vars.account_code,
@@ -482,3 +493,6 @@ def put_debit_credit_note_remarks_id():
 
 def id_generator():    
     return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6))
+
+def get_account_info_id():
+    return XML(DIV('get_account_info_id'))

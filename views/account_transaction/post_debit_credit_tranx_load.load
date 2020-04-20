@@ -1,69 +1,90 @@
 {{=table}}
-<div class="box-footer">    
-    <div class="col-md-2">        
-        <div class="form-group">
-            <label>Account Code</label>            
-            <input type="text" class="form-control" id="account_code" name="account_code" placeholder="Account Code">
-        </div>
-    </div>
-    <div class="col-md-2">
-        <div class="form-group">
-            <label>Description 1</label>
-            <input type="text" class="form-control" id="description_1" name="description_1" placeholder="Description 1">
-        </div>
-    </div>
-    <div class="col-md-2">
-        <div class="form-group">
-            <label>Description 2</label>
-            <input type="text" class="form-control" id="description_2" name="description_2" placeholder="Description 2">
-        </div>
-    </div>
-    <div class="col-md-2">
-        <div class="form-group">
-            <label>Date From</label>
-            <input type="text" class="form-control date" id="date_from" name="date_from" placeholder="Date From">
-        </div>
-    </div>
-    <div class="col-md-2">
-        <div class="form-group">
-            <label>Date To</label>
-            <input type="text" class="form-control date" id="date_to" name="date_to" placeholder="Date To">
-        </div>
-    </div>
-    <div class="col-md-1">
-        <div class="form-group">
-            <label>Amount</label>
-            <input type="text" class="form-control" id="amount" name="amount" placeholder="Amount">
-        </div>
-    </div>
-    <div class="col-md-1">
-        <div class="form-group">
-            <label>Action</label>
-            <button type="submit" class="btn btn-block btn-success btn-flat" id="btnSend">Send</button>
-        </div>
-    </div>
-    
+<div class="box-footer clearfix">    
+    <button type="button" class="btn btn-primary btn-flat pull-right" data-toggle="modal" data-target="#modal-default">Place New Transaction</button>            
+
 </div>
+{{=form.custom.begin}}
+<div class="modal fade" id="modal-default" style="display: none;">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">×</span></button>
+                <h4 class="modal-title">Transaction Form</h4>
+            </div>
+            <div class="modal-body">          
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">Account Code:</label>
+                        <div class="col-sm-9">
+                            {{=form.custom.widget.account_code}}
+                        </div>                
+                    </div>                                        
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">Description 1:</label>
+                        <div class="col-sm-9">
+                            {{=form.custom.widget.description_1}}
+                        </div>                
+                    </div>                      
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">Description 2:</label>
+                        <div class="col-sm-9">
+                            {{=form.custom.widget.description_2}}
+                        </div>                
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">Date From:</label>
+                        <div class="col-sm-9">
+                            {{=form.custom.widget.date_from}}
+                        </div>                
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">Date To:</label>
+                        <div class="col-sm-9">
+                            {{=form.custom.widget.date_to}}
+                        </div>                
+                    </div>                                
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">Amount:</label>
+                        <div class="col-sm-9">
+                            {{=form.custom.widget.amount}}
+                        </div>                
+                    </div>                     
+                </div>  
+            </div>            
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default btn-flat pull-left" data-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-primary btn-flat" data-dismiss="modal">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div> 
+{{=form.custom.end}}
 
 <script type="text/javascript">
 $(document).ready(function(){
-    $("#date_from, #date_to").prop( "disabled", true );
+    $("#Debit_Credit_Transaction_Temporary_date_from, #Debit_Credit_Transaction_Temporary_date_to").prop( "disabled", true );
     if ($("#no_table_note_type").val() == "Stand Rent") {
-        $("#date_from, #date_to" ).prop( "disabled", false );
+        $("#Debit_Credit_Transaction_Temporary_date_from, #Debit_Credit_Transaction_Temporary_date_to" ).prop( "disabled", false );
     } else {
         $("#no_table_brand_code_id").prop( "disabled", true );
-        $("#date_from, #date_to").val("");
+        $("#Debit_Credit_Transaction_Temporary_date_from, #Debit_Credit_Transaction_Temporary_date_to").val("");
     }
     $("#no_table_note_type").change(function(){
         if ($("#no_table_note_type").val() == "Stand Rent") {
-            $("#date_from, #date_to" ).prop( "disabled", false );
+            $("#Debit_Credit_Transaction_Temporary_date_from, #Debit_Credit_Transaction_Temporary_date_to" ).prop( "disabled", false );
         } else {
             $("#no_table_brand_code_id").prop( "disabled", true );
-            $("#date_from, #date_to").val("");
+            $("#Debit_Credit_Transaction_Temporary_date_from, #Debit_Credit_Transaction_Temporary_date_to").val("");
         }
     });
     $("#btnSend").click(function(){
         ajax('{{=URL('account_transaction','post_debit_credit_tranx_tmp')}}',['account_code','description_1','description_2','date_from','date_to','amount','ticket_no_id'])        
+    });
+    $("#Debit_Credit_Transaction_Temporary_account_code").change(function(){
+        alertify.set('notifier','position', 'bottom-center');        
+        alertify.success('Flash Account Info here...');
+        ajax("{{=URL('account_transaction','get_account_info_id')}}",'flash_info');
     });
 
     $(".dele").click(function(){

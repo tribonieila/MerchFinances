@@ -36,7 +36,13 @@
                             <label class="col-sm-2 control-label">Currency</label>
                             <div class="col-sm-4"><input class="form-control"  type="text" value="{{=row.currency_id.mnemonic}} - {{=row.currency_id.description}}" readonly></div>                            
                             <label class="col-sm-2 control-label">Brand Name</label>
-                            <div class="col-sm-4"><input class="form-control"  type="text" value="{{=row.brand_code_id.brand_code}} - {{=row.brand_code_id.brand_name}}" readonly></div>
+                            <div class="col-sm-4">
+                                {{ if row.brand_code_id == None: }}
+                                    <input class="form-control"  type="text" value="None" readonly>
+                                {{else: }}
+                                    <input class="form-control"  type="text" value="{{=row.brand_code_id.brand_code}} - {{=row.brand_code_id.brand_name}}" readonly>
+                                {{ pass }}
+                            </div>
                         </div>
                         <div class="form-group">
                             <label class="col-sm-2 control-label">Remarks</label>
