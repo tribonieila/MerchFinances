@@ -156,6 +156,7 @@
 
 <script type="text/javascript">
 $(document).ready(function(){        
+    
     $("#btnAcctRemarks").click(function(){        
         ajax("{{=URL('account_transaction','put_debit_credit_note_remarks_id',args = request.args(0))}}",['account_remarks'])
     });

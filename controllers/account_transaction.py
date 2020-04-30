@@ -233,13 +233,12 @@ def get_debit_credit_note_grid():
         edit_lnk = A(I(_class='fa fa-pencil'), _title='Edit Row', _type='button  ', _role='button', _class='btn btn-icon-toggle disabled', _href = (URL('account_transaction','put_debit_credit_note_id', args = n.id)))         
         dele_lnk = A(I(_class='fa fa-trash'), _title='Delete Row', _type='button  ', _role='button', _class='btn btn-icon-toggle disabled', _href=URL('#', args = n.id))        
         prin_lnk = A(I(_class='fa fa-print'), _title='Print', _type='button ', _role='button', _class='btn btn-icon-toggle disabled')
-        if auth.has_membership('BACK OFFICE DEPARTMENT'):      
-            if n.status_id > 2:
-                edit_lnk = A(I(_class='fa fa-pencil'), _title='Edit Row', _type='button  ', _role='button', _class='btn btn-icon-toggle disabled', _href = (URL('account_transaction','put_debit_credit_note_id', args = n.id)))
-            else:
-                edit_lnk = A(I(_class='fa fa-pencil'), _title='Edit Row', _type='button  ', _role='button', _class='btn btn-icon-toggle', _href = (URL('account_transaction','put_debit_credit_note_id', args = n.id)))                 
-            if int(n.status_id) == 5:                
-                prin_lnk = A(I(_class='fa fa-print'), _title='Print', _type='button ', _role='button', _target=' blank',_class='btn btn-icon-toggle',_href = URL('transaction_reports','get_debit_credit_note_id', args = n.id))
+        if n.status_id > 2:
+            edit_lnk = A(I(_class='fa fa-pencil'), _title='Edit Row', _type='button  ', _role='button', _class='btn btn-icon-toggle disabled', _href = (URL('account_transaction','put_debit_credit_note_id', args = n.id)))
+        else:
+            edit_lnk = A(I(_class='fa fa-pencil'), _title='Edit Row', _type='button  ', _role='button', _class='btn btn-icon-toggle', _href = (URL('account_transaction','put_debit_credit_note_id', args = n.id)))                 
+        if int(n.status_id) == 5:                
+            prin_lnk = A(I(_class='fa fa-print'), _title='Print', _type='button ', _role='button', _target=' blank',_class='btn btn-icon-toggle',_href = URL('transaction_reports','get_debit_credit_note_id', args = n.id))
 
         btn_lnk = DIV(view_lnk, edit_lnk, dele_lnk, prin_lnk)
         row.append(TR(
@@ -388,7 +387,12 @@ def put_debit_credit_tranx_tmp():
 
 def get_debit_credit_note_id():
     _row = db(db.Debit_Credit.id == request.args(0)).select().first()
-    return dict(row = _row)
+    form = SQLFORM(db.Debit_Credit, request.args(0))
+    if form.process().accepted:
+        response.flash = 'FORM UPDATED'
+    elif form.errors:
+        response.flash = 'FORM HAS ERROR'
+    return dict(form = form, row = _row)
 
 def get_debit_credit_trnax_tmp():
     _id = db(db.Debit_Credit.id == request.args(0)).select().first()    
