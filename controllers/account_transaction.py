@@ -216,12 +216,10 @@ def get_debit_credit_note_grid():
     row = []
     ctr = 0
     head = THEAD(TR(TH('#'),TH('Date'),TH('Serial Note'),TH('Department'),TH('Business Unit'),TH('Type'),TH('Status'),TH('Action Required'),TH('Action Control')))
-    if auth.has_membership('BACK OFFICE DEPARTMENT'): # accounts users as requestor
-        _query = db(db.Debit_Credit.created_by == auth.user_id).select(db.Debit_Credit.ALL)    
-    elif auth.has_membership('ACCOUNTS MANAGER'):
+    if auth.has_membership('ACCOUNTS MANAGER'):
         _query = db(db.Debit_Credit.status_id == 1).select(db.Debit_Credit.ALL)
     elif auth.has_membership('ACCOUNTS'):
-        _query = db(db.Debit_Credit.status_id == 1).select(db.Debit_Credit.ALL)
+        _query = db((db.Debit_Credit.created_by == auth.user_id) & (db.Debit_Credit.status_id != 5)).select(db.Debit_Credit.ALL)
     elif auth.has_membership('DEPARTMENT MANAGERS'):
         _query = db((db.Debit_Credit.department_id == _headD.department_id) & (db.Debit_Credit.status_id == 3)).select(db.Debit_Credit.ALL)
     elif auth.has_membership('MANAGEMENT'):
@@ -398,12 +396,12 @@ def get_debit_credit_trnax_tmp():
     _id = db(db.Debit_Credit.id == request.args(0)).select().first()    
     row = []
     ctr = _total_amount = 0
-    print 'od', request.args(0)
+    # print 'od', request.args(0)
     head = THEAD(TR(TH('#'),TH('Account Code'),TH('Description'),TH('Description'),TH('Date From'),TH('Date To'),TH('Amount'),TH('Action')))
     for n in db(db.Debit_Credit_Transaction_Temporary.ticket_no_id == str(_id.ticket_no)).select(db.Debit_Credit_Transaction_Temporary.ALL):
         ctr += 1        
         _total_amount += n.amount
-        print 'get_debit_credit_trnax_tmp', n.ticket_no_id
+        # print 'get_debit_credit_trnax_tmp', n.ticket_no_id
         dele_lnk = A(I(_class='fa fa-trash'), _title='Delete Row', _type='button  ', _role='button', _class='btn btn-icon-toggle disabled', delete='tr',_id='del',callback=URL('put_del_tmp', args = n.id,extension=False))                
         btn_lnk = DIV(dele_lnk)                
         row.append(TR(TD(ctr),TD(n.account_code),TD(n.description_1),TD(n.description_2),TD(n.date_from),TD(n.date_to),TD(n.amount),TD(btn_lnk)))
@@ -424,7 +422,7 @@ def get_debit_credit_trnax():
         ctr += 1        
         _total_amount += n.amount
         dele_lnk = A(I(_class='fa fa-trash'), _title='Delete Row', _type='button  ', _role='button', _class='btn btn-icon-toggle disabled', delete='tr',_id='del',callback=URL('put_del_tmp', args = n.id,extension=False))        
-        prin_lnk = A(I(_class='fa fa-print'), _title='Print', _type='button ', _role='button', _target='_blank', _class='btn btn-icon-toggle')
+        prin_lnk = A(I(_class='fa fa-print'), _title='Print', _type='button ', _role='button', _target='_blank', _class='btn btn-icon-toggle', _href=URL('transaction_reports','get_debit_credit_note_id',args = n.id, extension=False))
         btn_lnk = DIV(dele_lnk, prin_lnk)
         row.append(TR(TD(ctr),TD(n.account_code),TD(n.description_1),TD(n.description_2),TD(n.date_from),TD(n.date_to),TD(n.amount),TD(btn_lnk)))
     
@@ -493,6 +491,48 @@ def put_debit_credit_note_remarks_id():
         db(db.Debit_Credit.id == request.args(0)).update(management_remakrs = request.vars.management_remakrs)
     else:
         print 'else'
+
+def get_debit_credit_note_grid_reports():
+    _headD = db(db.Department_Head_Assignment.users_id == auth.user_id).select().first()
+    row = []
+    ctr = 0
+    head = THEAD(TR(TH('#'),TH('Date'),TH('Serial Note'),TH('Department'),TH('Business Unit'),TH('Type'),TH('Status'),TH('Action Required'),TH('Action Control')))
+    if auth.has_membership('ACCOUNTS MANAGER'):
+        _query = db(db.Debit_Credit.status_id == 1).select(db.Debit_Credit.ALL)
+    elif auth.has_membership('ACCOUNTS'):
+        _query = db((db.Debit_Credit.created_by == auth.user_id) & (db.Debit_Credit.status_id == 5)).select(db.Debit_Credit.ALL)
+    elif auth.has_membership('DEPARTMENT MANAGERS'):
+        _query = db((db.Debit_Credit.department_id == _headD.department_id) & (db.Debit_Credit.status_id == 3)).select(db.Debit_Credit.ALL)
+    elif auth.has_membership('MANAGEMENT'):
+        _query = db(db.Debit_Credit.status_id == 4).select(db.Debit_Credit.ALL)    
+
+    for n in _query:
+        ctr+=1
+        view_lnk = A(I(_class='fa fa-search'), _title='View Row', _type='button  ', _role='button', _class='btn btn-icon-toggle', _href=URL('account_transaction','get_debit_credit_note_id', args = n.id))
+        edit_lnk = A(I(_class='fa fa-pencil'), _title='Edit Row', _type='button  ', _role='button', _class='btn btn-icon-toggle disabled', _href = (URL('account_transaction','put_debit_credit_note_id', args = n.id)))         
+        dele_lnk = A(I(_class='fa fa-trash'), _title='Delete Row', _type='button  ', _role='button', _class='btn btn-icon-toggle disabled', _href=URL('#', args = n.id))        
+        prin_lnk = A(I(_class='fa fa-print'), _title='Print', _type='button ', _role='button', _class='btn btn-icon-toggle disabled')
+        if n.status_id > 2:
+            edit_lnk = A(I(_class='fa fa-pencil'), _title='Edit Row', _type='button  ', _role='button', _class='btn btn-icon-toggle disabled', _href = (URL('account_transaction','put_debit_credit_note_id', args = n.id)))
+        else:
+            edit_lnk = A(I(_class='fa fa-pencil'), _title='Edit Row', _type='button  ', _role='button', _class='btn btn-icon-toggle', _href = (URL('account_transaction','put_debit_credit_note_id', args = n.id)))                 
+        if int(n.status_id) == 5:                
+            prin_lnk = A(I(_class='fa fa-print'), _title='Print', _type='button ', _role='button', _target=' blank',_class='btn btn-icon-toggle',_href = URL('transaction_reports','get_debit_credit_note_id', args = n.id))
+
+        btn_lnk = DIV(view_lnk, edit_lnk, dele_lnk, prin_lnk)
+        row.append(TR(
+            TD(ctr),
+            TD(n.transaction_date),
+            TD('DCN',n.serial_note),
+            TD(n.department_id.department_code,' - ',n.department_id.department_name),
+            TD(n.business_unit.business_name),
+            TD(n.transaction_type),
+            TD(n.status_id.status),
+            TD(n.status_id.action_required),
+            TD(btn_lnk)))
+    body = TBODY(*row)
+    table = TABLE(*[head, body], _class='table')
+    return dict(table = table)    
 
 
 def id_generator():    
