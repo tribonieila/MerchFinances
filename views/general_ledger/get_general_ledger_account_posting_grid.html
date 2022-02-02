@@ -1,0 +1,57 @@
+{{extend 'layout.html'}}
+<section class="content">
+    <div class="row">
+        <div class="col-xs-9">
+            <div class="box">
+                <div class="box-header with-border">
+                    <h3 class="box-title">{{=_trnx_title}}</h3>                               
+                </div>                
+                <div class="box-body">                                                 
+                    {{=LOAD('general_ledger','load_general_ledger_account_posting_grid.load', args = request.args(0), ajax = True, extension = False, target = 'tblMSH')}}
+                </div>
+            </div>
+        </div>        
+        <div class="col-xs-3">
+            <div class="box box-danger">
+                <div class="box-header with-border">
+                    <h3 class="box-title">{{=title}}</h3>                               
+                </div>
+                {{=form.custom.begin}}  
+                <div class="box-body">                                               
+                    <div class="form-group">
+                        <label class="control-label">Select Month</label>
+                        {{=form.custom.widget.month}}                                                                                        
+                    </div>
+                    <input type="button" id = "btnSubmit" class="btn btn-primary btn-block btn-flat" onclick="FuncSubmit()" value="Submit">
+                </div>
+                <div class="box-footer">                    
+                    <!-- <button type="button" onclick="FuncPost()" id ="btnPost" class="btn btn-block btn-success btn-flat">Post In General Ledger </button> -->
+                </div>                
+                {{=form.custom.end}}                  
+            </div>
+        </div>
+
+
+    </div>                
+</section>
+
+<script>
+    $(document).ready(function(){
+        $("#btnPost").attr("disabled","disabled");        
+    })
+
+    $("#no_table_month").change(function(){        
+        if ($("#no_table_month").val() == 0) {            
+            $("#btnPost").attr("disabled","disabled");        
+        } 
+    });
+    function FuncSubmit(){
+        ajax("{{=URL('general_ledger','month_session', args = request.args(0))}}", ['month'])                
+    }
+
+    function FuncPost(){ 
+        ajax("{{=URL('general_ledger','get_ledger_account_grid', args = request.args(0))}}")                
+        
+    }
+
+</script>

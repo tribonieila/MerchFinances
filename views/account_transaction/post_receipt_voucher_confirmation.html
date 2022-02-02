@@ -1,0 +1,116 @@
+{{extend 'layout.html'}}
+
+<section class="content">
+    <div class="row">
+        
+        <div class="col-md-9">
+            {{=LOAD('account_transaction','post_receipt_voucher_confirmation_transaction.load', args = request.args(0), ajax = True, extension = False, target = 'AVTtbl')}}
+        </div>
+        <div class="col-md-3">
+            <div class="box box-danger">
+                <div class="box-header with-border">
+                    <h3 class="box-title">Receipt Voucher Form</h3>
+                </div>
+                <div class="box-body">
+                    {{=form.custom.begin}}                   
+                    <input id="ticket_no_id" name="ticket_no_id" type="text" value="{{=ticket_no_id}}" hidden>
+                    <div class="form-group">
+                        <label>Financial Year {{=request.now.year}}</label>
+                        <!-- <input id="financial_year" name="financial_year" type="text" value="{{=request.now.year}}"> -->
+                    </div>          
+
+                    <div class="row">
+                        <div class="form-group">
+                            <div class="col-lg-6">                              
+                                <label>Voucher No</label>
+                                {{=form.custom.widget.voucher_no}}    
+                            </div>                  
+                            <div class="col-lg-6">      
+                                <label>Date</label>
+                                <input class="form-control" id="Account_Voucher_Request_transaction_reference_date" name="transaction_reference_date" type="date" value="{{=request.now.date()}}">                                
+                            </div>                  
+                        </div>
+                    </div>
+                    </br>
+                    <div class="form-group">
+                        <label>RV Conf. Type</label>
+                        {{=form.custom.widget.receipt_voucher_confirmation_type_id}}    
+                    </div>          
+                    <div class="form-group">
+                        <label>Account Code</label>
+                        {{=form.custom.widget.account_code}}    
+                    </div>                         
+                    <div class="form-group">
+                        <label>Status</label>
+                        {{=form.custom.widget.status_id}}    
+                    </div>      
+                    <div class="form-group">
+                        <label>Remarks</label>
+                        {{=form.custom.widget.remarks}}    
+                    </div>                                              
+                    <input class="btn btn-block btn-primary btn-flat" type="submit" value="Submit" id="btnSubmit">
+                    {{if request.args(0):}}                        
+                        <input class="btn btn-block btn-danger btn-flat" type="button" value="Exit" id="btnExit" onclick="ExitFunc()">
+                    {{else:}}
+                        <input class="btn btn-block btn-success btn-flat" type="button" value="Proceed" id="btnProceed">
+                    {{pass }}
+                    {{=form.custom.end}}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>             
+
+<script>
+    $(document).ready(function(){
+        // $('#btnSubmit, #btnProceed').attr('disabled','disabled');    
+        
+        if ($("#Account_Voucher_Request_account_payment_mode_id").val() == 1) {                    
+            $("#hide_field").hide();
+        } else {
+            $("#hide_field").show();
+        }
+        $("#Account_Voucher_Request_voucher_no").prop('readonly', true);
+        $("#Account_Voucher_Request_account_payment_mode_id").change(function(){
+            if ($("#Account_Voucher_Request_account_payment_mode_id").val() != "") {
+                if ($("#Account_Voucher_Request_account_payment_mode_id").val() == 1) {                    
+                    $("#hide_field").slideUp('slow');                    
+                    $("#Account_Voucher_Request_bank_name_id").prop('readonly', true);
+                    $("#Account_Voucher_Request_cheque_no").prop('readonly', true);
+                    $("#Account_Voucher_Request_cheque_dated").prop('readonly', true);                    
+                } else {
+                    $("#hide_field").slideDown('slow');
+                    $("#Account_Voucher_Request_bank_name_id").prop('readonly', false);
+                    $("#Account_Voucher_Request_cheque_no").prop('readonly', false);
+                    $("#Account_Voucher_Request_cheque_dated").prop('readonly', false);                    
+                }
+                ajax("{{=URL('account_transaction','patch_receipt_voucher', args = 1)}}", ['account_payment_mode_id'])
+            } else {
+                $("#Account_Voucher_Request_account_code").val("");
+            }            
+        });
+
+        $("#Account_Voucher_Request_account_payment_mode_id, #Account_Voucher_Request_status_id").change(function(){
+            if ($("#Account_Voucher_Request_account_payment_mode_id").val() != ""  && $("#Account_Voucher_Request_status_id").val() != "") {
+                $('#btnProceed').removeAttr('disabled');                    
+            } else {
+                $('#btnProceed').attr('disabled','disabled');    
+                $("#trnx_input").slideUp('slow');                    
+            }
+        });
+
+        $("#btnProceed").click(function(){
+            $("#trnx_input").slideDown('slow');            
+            $('#Account_Voucher_Request_account_payment_mode_id option:not(:selected)').attr('disabled',true);            
+            $('#Account_Voucher_Request_bank_name_id option:not(:selected)').attr('disabled',true);
+            $('#Account_Voucher_Request_status_id option:not(:selected)').attr('disabled',true);
+            
+            // $("#Account_Voucher_Request_bank_name_id, #Account_Voucher_Request_cheque_no, #Account_Voucher_Request_cheque_dated").prop('readonly', true);
+            // $("#Account_Voucher_Request_account_code, #Account_Voucher_Request_received_from, #Account_Voucher_Request_collected_by, #Account_Voucher_Request_remarks").prop('readonly', true);            
+        });
+    })
+
+    function ExitFunc(){
+        window.location.replace('{{=URL('account_transaction','get_receipt_voucher_grid')}}'); 
+    }
+</script>

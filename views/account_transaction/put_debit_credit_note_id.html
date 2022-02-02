@@ -1,0 +1,104 @@
+{{extend 'layout.html'}}
+<section class="content-header">
+    <h1>Account Transactions<small>Form</small></h1>
+</section>
+<section class="content">
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="box box-default">
+                <div class="box-header with-border">
+                    <h3 class="box-title">Debit/Credit Note Form</h3>
+                    <div class="pull-right"><a href="#" id="btnRefresh" class="text-muted"><i class="fa fa-refresh"></i></a></div>
+                </div>
+                <div class="box-body">
+                    <div class="form-horizontal">
+                        {{=form.custom.begin}}      
+                        <!-- <input class="form-control" id="ticket_no" name="ticket_no" type="text" value={{=row.ticket_no}} readonly> -->
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">Serial Note No.</label>                            
+                            <div class="col-sm-2"><input class="form-control" id="serial_note" name="serial_note" type="text" value={{=row.serial_note}} readonly></div>                            
+                            <label class="col-sm-4 control-label">Transaction Date</label>
+                            <div class="col-sm-2"><input class="form-control" id="transaction_date" name="transaction_date" type="text" value={{=row.transaction_date}} readonly></div>
+                        </div>                   
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">Department</label>
+                            <div class="col-sm-4">{{=form.custom.widget.department_id}}</div>    
+                            <label class="col-sm-2 control-label">Business Unit</label>
+                            <div class="col-sm-4">{{=form.custom.widget.business_unit}}</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">Transaction Type</label>
+                            <div class="col-sm-4">{{=form.custom.widget.transaction_type}}</div>
+                            <label class="col-sm-2 control-label">Note Type</label>
+                            <div class="col-sm-4">{{=form.custom.widget.note_type}}</div>                              
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">Currency</label>
+                            <div class="col-sm-4">{{=form.custom.widget.currency_id}}</div>                            
+                            <label class="col-sm-2 control-label">Brand Name</label>
+                            <div class="col-sm-4">{{=form.custom.widget.brand_code_id}}</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">Remarks</label>
+                            <div class="col-sm-4">{{=form.custom.widget.remarks}}</div>        
+                            <label class="col-sm-2 control-label">Status</label>
+                            <div class="col-sm-4">{{=form.custom.widget.status_id}}</div>
+                        </div>
+                        <div class="form-group">
+                            
+                            <label class="col-sm-8 control-label"></label>
+                            <div class="col-sm-4">
+                                <input class="btn btn-primary btn-flat" type="submit" value="Submit" id="btnSubmit">
+                                <input class="btn btn-danger btn-flat" type="button" value="Cancel" id="btnCancel">                                                            
+                            </div>
+                        </div>
+            
+                        {{=form.custom.end}}        
+                    </div>                    
+                </div>                
+            </div>            
+        </div>
+    </div>
+    <div class="row" id="tranx">
+        <div class="col-xs-12">
+            <div class="box box-danger">
+                <div class="box-body">
+                    {{=LOAD('account_transaction','put_debit_credit_tranx_load.load',ajax = 'true', args = request.args(0), target = 'dctTemp')}}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script type="text/javascript">
+$(document).ready(function(){        
+    $("#no_table_department_id, #no_table_business_unit, #no_table_transaction_type, #no_table_currency_id, #no_table_status_id, #Debit_Credit_note_type").change(function(){
+        if ($("#no_table_department_id").val() && $("#no_table_business_unit").val() && $("#no_table_transaction_type").val() && $("#no_table_currency_id").val() && $("#no_table_status_id").val() && $("#Debit_Credit_note_type").val()) {            
+            $("#btnProceed").prop( "disabled", false );
+        } else {
+            $("#btnProceed").prop( "disabled", true );
+        }
+    });
+    $("#Debit_Credit_note_type").change(function(){
+        if ($("#Debit_Credit_note_type").val() == "Stand Rent") {
+            $("#Debit_Credit_brand_code_id" ).prop( "disabled", false );            
+        } else {
+            $("#Debit_Credit_brand_code_id").prop( "disabled", true );
+            $("#Debit_Credit_brand_code_id").val("");            
+        }
+    });
+
+    $("#btnProceed").click(function(){
+        $("#tranx").slideDown('slow');
+    });
+
+    $("#btnCancel").click(function(){        
+        alertify.alert('Debit/Credit Note', 'Are you sure you want to cancel this application?', 
+            function(){ 
+                alertify.success('Ok'); 
+            });
+        console.log("Cancel");
+    });
+});
+</script>
+

@@ -1,0 +1,82 @@
+{{extend 'layout.html'}}
+<section class="content">
+	<div class="row">
+		<div class="col-xs-10">
+			<div class="box">
+				<div class="box-header with-border">
+					<h3 class="box-title">Account Card Grid</h3>
+					<div class="box-tools pull-right">
+						<button type="button" class="btn btn-box-tool" id="idPrint" onclick="PrintAC()" data-toggle="tooltip" title="Print" data-widget="chat-pane-toggle" data-original-title="Contacts"><i class="fa fa-print"></i></button>
+					</div>					
+				</div>				
+				<div class="box-body">
+					{{=LOAD('reports','load_account_card_grid.load', ajax = True, extension = False, target = 'ACtbl')}}
+				</div>
+			</div>
+		</div>		
+		<div class="col-xs-2">
+			<div class="box box-danger">
+				<div class="box-header with-border">
+					<h3 class="box-title">Account Card Form</h3>
+				</div>
+				<div class="box-body">
+					{{=form.custom.begin}}
+					<div class="form-group">
+						<label class="control-label">Account Code</label>
+						{{=form.custom.widget.account_code}}
+					</div>
+					<div class="form-group">
+						<label class="control-label">Year</label>
+						{{=form.custom.widget.year}}
+					</div>
+					<div class="form-group">
+						<label class="control-label">Department</label>
+						{{=form.custom.widget.dept_code_id}}
+					</div>
+					<div class="form-group">
+						<label class="control-label">Report Type</label>
+						{{=form.custom.widget.type}}
+					</div>
+					<div class="form-group">
+						<label class="control-label">All Entries</label>
+						{{=form.custom.widget.entries}}
+					</div>
+
+					<div class="form-group">
+						<label class="control-label">Start Date</label>							
+						<input type="date" class="form-control" id="start_date" name = "start_date" value = {{=request.now}}>							
+					</div>
+					<div class="form-group">
+						<label class="control-label">End Date</label>							
+						<input type="date" class="form-control" id="end_date" name = "end_date" value = {{=request.now}}>							
+					</div>						
+					<button type="button" class="btn btn-block btn-primary btn-flat" id="idSubmit" onclick="btnSubmit()">Submit</button>
+					{{=form.custom.end}}					
+				</div>
+			</div>
+		</div>		
+	</div>
+</section>
+
+
+<script>
+	$(document).ready(function(){
+		$("#idPrint, #idSubmit").attr("disabled","disabled");
+		$('.table').DataTable();
+
+		$("#no_table_account_code, #no_table_year, #no_table_type").change(function(){
+			$("#idPrint, #idSubmit").attr("disabled","disabled");
+			if ($("no_table_account_code").val != "" && $("#no_table_year").val() != 0 && $("#no_table_type").val() != 0) {				
+				$("#idSubmit").removeAttr("disabled");
+			}
+		});		
+	});
+
+	function btnSubmit(){
+		ajax("{{=URL('reports','patch_account_card')}}",['account_code','type','dept_code_id','entries','start_date','end_date']);		
+	}		
+
+	function PrintAC(){		
+		window.open("{{=URL('print_reports','get_account_card_grid')}}");
+	}
+</script>

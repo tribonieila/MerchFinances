@@ -1,0 +1,37 @@
+{{=table}}
+{{=form.custom.begin}}
+<table class="table">    
+    <tr><td style="width:200px;">Account Code</td><td>Description</td><td style="width:170px;">Date From</td><td style="width:170px;">Date To</td><td style="width:170px;">Amount</td><td style="width:70px;"></td></tr>
+    <tr>
+        <td>{{=form.custom.widget.account_code}}</td>
+        <td>{{=form.custom.widget.description}}</td>
+        <td><input class="form-control" id="date_from" name="date_from" type="date"></td>
+        <td><input class="form-control" id="date_to" name="date_to" type="date"></td>
+        <td>{{=form.custom.widget.amount}}</td>
+        <td><button type="submit" class="btn btn-success btn-flat pull-right">Insert +</button></td>
+    </tr>
+    
+</table>
+{{=form.custom.end}}
+
+<script>
+    $(document).ready(function(){
+        $('input[type=text]').attr('autocomplete','off');
+        $('input[type=number]').attr('autocomplete','off');
+        
+        document.getElementById("no_table_account_code").focus();
+        
+        $("#date_from, #date_to").prop( "disabled", true );
+        if ($("#Debit_Credit_note_type").val() == "Stand Rent") {
+            $("#date_from, #date_to").prop( "disabled", false );
+        }  else {
+            $("#date_from, #date_to").prop( "disabled", true );
+        }
+
+        $("#no_table_account_code").change(function(){
+            ajax("{{=URL('account_transaction','get_account_info_id')}}",['account_code']);
+        });
+
+
+    })
+</script>

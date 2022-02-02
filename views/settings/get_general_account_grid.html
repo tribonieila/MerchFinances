@@ -1,0 +1,74 @@
+{{extend 'layout.html'}}
+<section class="content">
+    <div class="row">
+        <div class="col-xs-8">
+            <div class="box">
+                <div class="box-header with-border"> 
+                    <h3 class="box-title">General Account Grid</h3>
+                </div>
+                <div class="box-body table-responsive">    
+                    {{=table}}
+                </div>
+            </div>
+        </div>
+        <div class="col-xs-4">
+            <div class="box box-danger">
+                <div class="box-header with-border">
+                    <h3 class="box-title">General Account Form</h3>
+                </div>
+                <div class="box-body">
+                    {{=form.custom.begin}}
+                    <div class="form-horizontal">
+                        <div class="form-group">
+                            <label class="col-sm-6 control-label">Selective Tax Payable Account</label>
+                            <div class="col-sm-6">{{=form.custom.widget.selective_tax_payable_account}}</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-6 control-label">Selective Tax Receivable Account</label>
+                            <div class="col-sm-6">{{=form.custom.widget.selective_tax_receivable_account}}</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-6 control-label">Claim Receivable Account</label>
+                            <div class="col-sm-6">{{=form.custom.widget.claim_receivable_account}}</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-6 control-label">Provision E-Commerce Delivery Income</label>
+                            <div class="col-sm-6">{{=form.custom.widget.provision_delivery_income}}</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-6 control-label">Receipt Voucher Account</label>
+                            <div class="col-sm-6">{{=form.custom.widget.receipt_voucher_account}}</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-6 control-label">PDC Receipt Voucher Account</label>
+                            <div class="col-sm-6">{{=form.custom.widget.pdc_receipt_voucher_account}}</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="col-sm-6 control-label"></label>
+                            <div class="col-sm-6">
+                                <input class="btn btn-flat btn-primary" type="submit" value="Submit">
+                                <input class="btn btn-flat btn-warning" type="button" value="Clear" onClick="onClear()"/>
+                            </div>
+                        </div>                    
+                    </div>
+                    {{=form.custom.end}}                    
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+</section>             
+
+
+<script>
+    $(document).ready(function(){
+        $(".table").DataTable();
+    })
+    function onClear(){
+        console.log("Clear")
+        window.location.replace('{{=URL('settings','get_general_account_grid')}}'); 
+
+    }
+</script>

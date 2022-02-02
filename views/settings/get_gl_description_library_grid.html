@@ -1,0 +1,92 @@
+{{extend 'layout.html'}}
+<section class="content">
+    <div class="row">
+        <div class="col-xs-8">
+            <div class="box">
+                <div class="box-header with-border">
+                    <h3 class="box-title">GL Description Library Grid</h3>                                       
+                </div>                
+        
+                <div class="box-body">    
+                    {{=table}}
+                </div>
+            </div>
+        </div>        
+        <div class="col-xs-4">
+            <div class="box box-danger">
+                <div class="box-header with-border">
+                    <h3 class="box-title">GL Description Library Form</h3>
+                </div>
+                <div class="box-body">
+                    {{=form.custom.begin}}
+                    <div class="form-horizontal">
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">Transaction Type</label>
+                            <div class="col-sm-8">{{=form.custom.widget.transaction_type}}</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">Transaction Prefix Text</label>
+                            <div class="col-sm-8">{{=form.custom.widget.transaction_prefix_text}}</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">Order No Text</label>
+                            <div class="col-sm-8">{{=form.custom.widget.order_no_text}}</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">Purchase Receipt No Text</label>
+                            <div class="col-sm-8">{{=form.custom.widget.purchase_receipt_no_text}}</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">Short Supply Text</label>
+                            <div class="col-sm-8">{{=form.custom.widget.short_supply_text}}</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">Excise Tax Text</label>
+                            <div class="col-sm-8">{{=form.custom.widget.excise_tax_text}}</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">Damaged Supply Text</label>
+                            <div class="col-sm-8">{{=form.custom.widget.damaged_supply_text}}</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">Common Text</label>
+                            <div class="col-sm-8">{{=form.custom.widget.common_text}}</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">Common Text2</label>
+                            <div class="col-sm-8">{{=form.custom.widget.common_text2}}</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">IB Text</label>
+                            <div class="col-sm-8">{{=form.custom.widget.ib_text}}</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label"></label>
+                            <div class="col-sm-8">
+                                <input class="btn btn-flat btn-primary" type="submit" value="Submit">
+                                <input class="btn btn-flat btn-warning" type="button" value="Clear" onClick="onClear()"/>
+                            </div>
+                        </div>                    
+                    </div>
+                    {{=form.custom.end}}                    
+                </div>
+            </div>
+        </div>
+
+
+    </div>    
+</section>             
+
+
+<script>
+    $(document).ready(function(){
+        $(".table").DataTable();
+    })
+    function onClear(){        
+        window.location.replace('{{=URL('settings','get_gl_description_library_grid')}}'); 
+
+    }
+</script>

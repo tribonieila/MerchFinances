@@ -1,0 +1,122 @@
+{{extend 'layout.html'}}
+<section class="content">
+    <div class="row">
+        <div class="col-md-9">
+            {{=LOAD('account_transaction','put_receipt_voucher_transaction_id.load', args = request.args(0), ajax = True, extension = False, target = 'AVTtbl')}}
+        </div>
+        <div class="col-md-3">
+            <div class="box box-danger">
+                <div class="box-header with-border">
+                    <h3 class="box-title">Receipt Voucher Form</h3>
+                </div>
+                <div class="box-body">
+                    {{=form.custom.begin}}                                       
+                    <div class="row">
+                        <div class="form-group">
+                            <div class="col-lg-6">                              
+                                <label>Voucher No</label>
+                                {{=form.custom.widget.voucher_no}}    
+                            </div>                  
+                            <div class="col-lg-6">      
+                                <label>Date</label>
+                                {{=form.custom.widget.transaction_reference_date}}    
+                            </div>                  
+                        </div>
+                    </div>
+                    <!-- <div class="row">
+                        <div class="form-group">
+                            <div class="col-xs-6">                              
+                                <label>Voucher Type</label>
+                                {{=form.custom.widget.account_voucher_transaction_type}}    
+                            </div>                                          
+                            <div class="col-xs-6">                              
+                                <label>Voucher Code</label>
+                                {{=form.custom.widget.account_voucher_transaction_code}}    
+                            </div>                  
+                        </div>
+                    </div> -->
+                    <div class="form-group">
+                        <label>account_payment_mode_id</label>
+                        {{=form.custom.widget.account_payment_mode_id}}    
+                    </div>          
+                    <div class="form-group">
+                        <label>account_voucher_payment_code</label>
+                        {{=form.custom.widget.account_voucher_payment_code}}    
+                    </div>                         
+                    <div class="form-group">
+                        <label>account_code</label>
+                        {{=form.custom.widget.account_code}}    
+                    </div>                         
+                    <div class="form-group">
+                        <label>total_amount</label>
+                        {{=form.custom.widget.total_amount}}    
+                    </div>                         
+
+                    <div class="form-group">
+                        <label>bank_name</label>
+                        {{=form.custom.widget.bank_name}}    
+                    </div>                         
+                    <div class="form-group">
+                        <label>cheque_no</label>
+                        {{=form.custom.widget.cheque_no}}    
+                    </div>                         
+
+                    <div class="form-group">
+                        <label>cheque_dated</label>
+                        {{=form.custom.widget.cheque_dated}}    
+                    </div>                         
+                    <div class="form-group">
+                        <label>purpose</label>
+                        {{=form.custom.widget.purpose}}    
+                    </div>      
+
+                    
+                    <div class="form-group">
+                        <label>person</label>
+                        {{=form.custom.widget.person}}    
+                    </div>      
+                    <div class="form-group">
+                        <label>entry_date</label>
+                        {{=form.custom.widget.entry_date}}    
+                    </div>      
+                    <div class="form-group">
+                        <label>cost_center</label>
+                        {{=form.custom.widget.cost_center}}    
+                    </div>      
+
+                    <div class="form-group">
+                        <label>location_cost_center</label>
+                        {{=form.custom.widget.location_cost_center}}    
+                    </div>      
+                    <div class="form-group">
+                        <label>status</label>
+                        {{=form.custom.widget.status_id}}    
+                    </div>      
+                    <div class="form-group">
+                        <label>remarks</label>
+                        {{=form.custom.widget.remarks}}    
+                    </div>      
+                    {{=form.custom.submit}}
+                    {{=form.custom.end}}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>             
+
+<script>
+    $(document).ready(function(){
+        $("#Account_Voucher_Header_Temporary_account_payment_mode_id").change(function(){
+            if ($("#Account_Voucher_Header_Temporary_account_payment_mode_id").val() != "") {
+                ajax("{{=URL('account_transaction','patch_receipt_voucher', args = 1)}}", ['account_payment_mode_id'])
+            } else {
+                $("#Account_Voucher_Header_Temporary_account_voucher_payment_code").val("");
+            }            
+        });
+    })
+    
+    function onClear(){        
+        window.location.replace('{{=URL('settings','get_accounts_workflow_status_grid')}}'); 
+
+    }
+</script>

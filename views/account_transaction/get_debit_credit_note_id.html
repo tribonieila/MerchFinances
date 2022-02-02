@@ -1,0 +1,235 @@
+{{extend 'layout.html'}}
+<section class="content-header">
+    <h1>Account Transactions<small>Form</small></h1>
+</section>
+<section class="content">
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="box box-danger">
+                <div class="box-header with-border">
+                    <h3 class="box-title">Debit/Credit Note Form</h3>
+                    <div class="pull-right"><a href="#" id="btnRefresh" class="text-muted"><i class="fa fa-refresh"></i></a></div>
+                </div>
+                <div class="box-body">
+                    <div class="form-horizontal">                                                
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">Serial Note No.</label>                            
+                            <div class="col-sm-2"><input class="form-control" id="serial_note" name="serial_note" type="text" value="DCN{{=row.serial_note}}" readonly></div>                            
+                            <label class="col-sm-4 control-label">Transaction Date</label>
+                            <div class="col-sm-2"><input class="form-control" id="transaction_date" name="transaction_date" type="text" value={{=row.transaction_date}} readonly></div>
+                        </div>                  
+                        <div class="form-group">                            
+                            <label class="col-sm-2 control-label"><button style="border:none;background:none;" type="button" id="btnMap" class="btn btn-flat btn-default" data-toggle="modal" data-target="#modal-default-address"><i class="fa fa-map-marker-alt"></i></button> Account Code</label>
+                            <div class="col-sm-4"><input class="form-control" id="account_code_id" name="account_code_id" type="text" value="{{=_account_name}}" readonly></div>
+                            <label class="col-sm-2 control-label">Account Type</label>
+                            <div class="col-sm-4">{{=form.custom.widget.account_type}}</div>
+                        </div>                         
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">Department</label>
+                            <div class="col-sm-4">{{=form.custom.widget.department_id}}</div>    
+                            <label class="col-sm-2 control-label">Business Unit</label>
+                            <div class="col-sm-4">{{=form.custom.widget.business_unit}}</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">Transaction Type</label>
+                            <div class="col-sm-4">{{=form.custom.widget.transaction_type}}</div>
+                            <label class="col-sm-2 control-label">DB/CR Note Type</label>
+                            <div class="col-sm-4">{{=form.custom.widget.note_type}}</div>                              
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">Currency</label>
+                            <div class="col-sm-4">{{=form.custom.widget.currency_id}}</div>                            
+                            <label class="col-sm-2 control-label">Stand Rent</label>
+                            <div class="col-sm-4">{{=form.custom.widget.brand_code_id}}</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">Remarks</label>
+                            <div class="col-sm-4">{{=form.custom.widget.remarks}} </div>        
+                            <label class="col-sm-2 control-label">Status</label>
+                            <div class="col-sm-4">{{=form.custom.widget.status_id}}</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">Acct. Remarks</label>
+                            <div class="col-sm-4">
+                                {{ if auth.has_membership(role = 'ACCOUNTS MANAGER'): }}
+                                    <div class="input-group">                                
+                                        <input text="text" class="form-control" name="account_remarks" placeholder="type your remarks here..."  value="{{=row.account_remarks}}">
+                                        <span class="input-group-addon btn btn-primary" id="btnAcctRemarks">Send</span>
+                                    </div>                                                                   
+                                {{ else: }}
+                                    <input text="text" class="form-control" name="account_remarks" value="{{=row.account_remarks}}" readonly>
+                                {{ pass }}
+                            </div>        
+                            <label class="col-sm-2 control-label"></label>
+                            <div class="col-sm-4">                                  
+                                {{ if auth.has_membership(role = 'ACCOUNTS MANAGER'): }}
+                                    {{ if (row.status_id == 3):}}
+                                        <input class="btn btn-primary btn-flat" type="button" value="Approved" id="btnAcctAppr"  disabled="true">
+                                        <input class="btn btn-danger btn-flat" type="button" value="Reject" id="btnReject" disabled="true">                                                            
+                                    {{ else: }}
+                                        <input class="btn btn-primary btn-flat" type="button" value="Approved" id="btnAcctAppr">
+                                        <input class="btn btn-danger btn-flat" type="button" value="Reject" id="btnReject">                                                            
+                                    {{ pass }}
+                                {{ elif auth.has_membership(role = 'DEPARTMENT MANAGERS'): }}
+                                    {{ if (row.status_id == 4):}}
+                                        <input class="btn btn-primary btn-flat" type="button" value="Approved" id="btnAcctAppr"  disabled="true">
+                                        <input class="btn btn-danger btn-flat" type="button" value="Reject" id="btnReject" disabled="true">                                                            
+                                    {{ else: }}
+                                        <input class="btn btn-primary btn-flat" type="button" value="Approved" id="btnAcctAppr">
+                                        <input class="btn btn-danger btn-flat" type="button" value="Reject" id="btnReject">                                                            
+                                    {{ pass }}
+                                {{ elif auth.has_membership(role = 'MANAGEMENT'): }}
+                                    {{ if (row.status_id == 5):}}
+                                        <input class="btn btn-primary btn-flat" type="button" value="Approved" id="btnAcctAppr"  disabled="true">
+                                        <input class="btn btn-danger btn-flat" type="button" value="Reject" id="btnReject" disabled="true">                                                            
+                                    {{ else: }}
+                                        <input class="btn btn-primary btn-flat" type="button" value="Approved" id="btnAcctAppr">
+                                        <input class="btn btn-danger btn-flat" type="button" value="Reject" id="btnReject">                                                            
+                                    {{ pass }}
+                                {{ else: }}
+                                    {{ if (row.status_id == 5): }}
+                                        <input class="btn btn-primary btn-flat" type="submit" value="Submit" id="btnSubmit" disabled="true">
+                                        <label><input type="checkbox" id="btnCancel" disabled="true"> Cancel Transaction</label>                                                                                
+                                    {{ else: }}
+                                        <input class="btn btn-primary btn-flat" type="button" value="Submit" id="btnSubmit">
+                                        <label><input type="checkbox" id="btnCancel"> Cancel Transaction</label>                                        
+                                    {{ pass }}
+                                {{ pass }}
+                            </div>
+                        </div>                        
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">Dept. Remarks</label>
+                            <div class="col-sm-4">
+                            {{ if auth.has_membership(role = 'DEPARTMENT MANAGERS'): }}                            
+                                <div class="input-group">                                
+                                    <input text="text" class="form-control" name="department_remarks" placeholder="type your remarks here..."  value="{{=row.department_remarks}}">
+                                    <span class="input-group-addon btn btn-primary" id="btnDeptRemarks">Send</span>
+                                </div>                                
+                            {{ else: }}                                
+                                <input text="text" class="form-control" name="department_remarks" placeholder="type your remarks here..."  value="{{=row.department_remarks}}" readonly>                                
+                            {{ pass }}
+                            </div>
+                        </div>                        
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">Mngt. Remarks</label>
+                            <div class="col-sm-4">
+                            {{ if auth.has_membership(role = 'MANAGEMENT'): }}
+                                <div class="input-group">                                
+                                    <input text="text" class="form-control" name="management_remakrs" placeholder="type your remarks here..."  value="{{=row.management_remakrs}}">
+                                    <span class="input-group-addon btn btn-primary" id="btnMngtRemarks">Send</span>
+                                </div>                                                            
+                            {{ else: }}                            
+                                <input class="form-control"  type="text" value="{{=row.management_remakrs}}" readonly>
+                            {{ pass }}
+                            </div>        
+                        </div>                        
+                        <div class="form-group">                            
+                        </div>
+                    </div>                    
+                </div>                
+            </div>            
+        </div>
+    </div>
+    <div class="row" id="tranx">
+        <div class="col-xs-12">
+            <div class="box box-default">
+                <div class="box-body">
+                    {{ if db(db.Debit_Credit_Transaction.serial_note_id == int(request.args(0))).select(db.Debit_Credit_Transaction.serial_note_id).first() == int(request.args(0)): }}
+                        {{=LOAD('account_transaction','get_debit_credit_trnax_tmp.load',ajax = 'true', args = request.args(0), target = 'dctTemp')}}
+                    {{ else: }}                        
+                        {{=LOAD('account_transaction','get_debit_credit_trnax.load',ajax = 'true', args = request.args(0), target = 'dctTrnx')}}
+                    {{ pass }}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="modal fade" id="modal-default-address" style="display: none;">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">×</span></button>
+                <h4 class="modal-title">Address Form</h4>
+            </div>
+            <div class="modal-body">          
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">Account Name:</label>
+                        <div class="col-sm-9">
+                            {{=form.custom.widget.account_name}}
+                        </div>                
+                    </div>                                        
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">Address:</label>
+                        <div class="col-sm-9">
+                            {{=form.custom.widget.account_address}}
+                        </div>                
+                    </div>                      
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">City:</label>
+                        <div class="col-sm-9">
+                            {{=form.custom.widget.account_city}}
+                        </div>                
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">Country:</label>
+                        <div class="col-sm-9">
+                            {{=form.custom.widget.account_country}}
+                        </div>                
+                    </div>                                
+                </div>  
+            </div>            
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default btn-flat pull-left" data-dismiss="modal">Close</button>
+                <button type="button" id="btnAddress" class="btn btn-primary btn-flat" data-dismiss="modal">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div> 
+{{=form.custom.end}}
+
+<script type="text/javascript">
+$(document).ready(function(){        
+    $("#Debit_Credit_account_type, #Debit_Credit_department_id, #Debit_Credit_business_unit, #Debit_Credit_transaction_type, #Debit_Credit_note_type, #Debit_Credit_currency_id, #Debit_Credit_brand_code_id, #Debit_Credit_status_id").prop( "disabled", true );    
+
+    $("#btnAddress").click(function(){        
+        ajax("{{=URL('account_transaction','put_account_code_address_id', args = request.args(0))}}",['account_name','account_address','account_city','account_country'])
+    });
+    $("#btnAcctRemarks").click(function(){        
+        ajax("{{=URL('account_transaction','put_debit_credit_note_remarks_id',args = request.args(0))}}",['account_remarks'])
+    });
+    
+    $("#btnDeptRemarks").click(function(){        
+        ajax("{{=URL('account_transaction','put_debit_credit_note_remarks_id',args = request.args(0))}}",['department_remarks'])
+    });
+
+    $("#btnMngtRemarks").click(function(){        
+        ajax("{{=URL('account_transaction','put_debit_credit_note_remarks_id',args = request.args(0))}}",['management_remakrs'])
+    });
+
+    $("#btnAcctAppr").click(function(){        
+        ajax("{{=URL('account_transaction','put_debit_credit_note_approved_id',args = request.args(0))}}")
+    });
+
+    $("#btnReject").click(function(){
+        ajax("{{=URL('account_transaction','put_debit_credit_note_reject_id',args = request.args(0))}}")
+    });
+
+    $("#Debit_Credit_remarks").change(function(){        
+        ajax("{{=URL('account_transaction','put_debit_credit_note_remarks_id', args = request.args(0))}}", ['remarks'])
+    })
+
+    $("#btnCancel").click(function(){
+        alertify.confirm('Cancel Transaction', 'Are you sure you want to cancel this transaction?', 
+            function(){ 
+                ajax("{{=URL('account_transaction','cancel_debit_credit_note_id', args = request.args(0))}}")
+                alertify.success('Transaction Cancelled.')
+            }, 
+            function(){ alertify.error('Cancel')});
+    })
+
+});
+</script>
+

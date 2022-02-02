@@ -1,0 +1,62 @@
+{{extend 'layout.html'}}
+<section class="content">
+  <div class="row">      
+    <div class="col-xs-8">      
+      <div class="box">
+        <div class="box-header with-border">
+            <h3 class="box-title">Transaction Prefix Grid</h3>                                       
+        </div>                
+        <div class="box-body table-responsive">                                    
+            {{=table}}
+        </div>
+      </div>
+    </div>
+    <div class="col-xs-4"> 
+        <div class="box box-danger">
+            <div class="box-header with-border">
+                <h3 class="box-title">Transaction Prefix Form</h3>
+            </div>
+            <div class="box-body">                
+                {{=form.custom.begin}}
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">Prefix</label>
+                        <div class="col-sm-8">{{=form.custom.widget.prefix}}</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">Prefix Name</label>
+                        <div class="col-sm-8">{{=form.custom.widget.prefix_name}}</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">Current Year Serial Key</label>
+                        <div class="col-sm-8">{{=form.custom.widget.current_year_serial_key}}</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">Prefix Key</label>
+                        <div class="col-sm-8">{{=form.custom.widget.prefix_key}}</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label"></label>
+                        <div class="col-sm-8">                            
+                            <input class="btn btn-flat btn-primary" type="submit" value="Submit">
+                            <input class="btn btn-flat btn-warning" type="button" value="Clear" onClick="onClear()"/>
+                        </div>
+                    </div>                         
+
+                </div>
+                {{=form.custom.end}}
+            </div>
+        </div>
+    </div>
+  </div>
+</section> 
+
+<script>
+    $(document).ready(function(){
+        $(".table").DataTable();
+    })
+    function onClear(){        
+        window.location.replace('{{=URL('settings','get_transaction_prefix_grid')}}'); 
+
+    }
+</script>

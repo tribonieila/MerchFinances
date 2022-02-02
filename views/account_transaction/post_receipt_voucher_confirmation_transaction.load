@@ -1,0 +1,84 @@
+<div class="box">
+    <div class="box-header with-border">
+        <h3 class="box-title">Receipt Voucher Confirmation Grid</h3>
+    </div>
+    <div class="box-body table-responsive">                
+        {{=table}}        
+    </div>
+</div>
+
+<div id="item_description"></div>
+
+<div class="box" id="trnx_input">
+    <div class="box-header with-border">
+        <h3 class="box-title">Receipt Voucher Confirmation Form</h3>
+    </div>
+    {{=form.custom.begin}}
+    <div class="box-body">        
+        
+        <div class="row">
+            <div class="form-group">
+                <div class="col-lg-2">                              
+                    <label>Account Credit Code</label>
+                    {{=form.custom.widget.account_reference}}    
+                </div>                  
+                <div class="col-lg-2">      
+                    <label>Dept.</label>
+                    {{=form.custom.widget.dept_code_id}}    
+                </div>                                  
+                <div class="col-lg-2">      
+                    <label>Type</label>
+                    {{=form.custom.widget.transaction_payment_type_id}}    
+                </div>                  
+                <div class="col-lg-4">      
+                    <label>Description</label>
+                    {{=form.custom.widget.description}}    
+                </div>                  
+                <div class="col-lg-2">      
+                    <label>Amount</label>
+                    {{=form.custom.widget.amount_paid}}    
+                </div>                  
+
+            </div>
+        </div>
+    </div>    
+    <div class="box-footer">
+        <div class="row">
+            <div class="col-lg-12"> 
+                <input class="btn btn-block btn-primary btn-flat" type="submit" value=" + ADD" id="btnadd">
+            </div>
+        </div>
+    </div>
+    {{=form.custom.end}}
+</div>
+
+<script>
+    $(document).ready(function(){  
+        // $("#tblGL").DataTable();
+        {{if request.args(0):}}      
+            $("#trnx_input").show();
+        {{else:}}
+            $("#trnx_input").hide();
+        {{pass}}
+        $('input[type=text]').attr('autocomplete','off');
+        $('input[type=number]').attr('autocomplete','off');
+
+        $("#Account_Voucher_Transaction_Request_account_code_id").change(function(){
+            ajax("{{=URL('account_transaction','get_item_description')}}", ['account_code_id'], 'item_description');
+        });
+
+        $("#Account_Voucher_Transaction_Request_account_code_id, #Account_Voucher_Transaction_Request_transaction_payment_type_id").change(function(){
+            if ($("#Account_Voucher_Transaction_Request_account_code_id").val() && ($("#Account_Voucher_Transaction_Request_transaction_payment_type_id").val() == 2)) {
+                ajax("{{=URL('account_transaction','patch_receipt_voucher', args = 3)}}", ['account_code_id','transaction_payment_type_id']);
+            } else {
+                $("#Account_Voucher_Transaction_Request_description").val("");
+                $("#Account_Voucher_Transaction_Request_amount_paid").val("");
+                
+            }
+            
+        });
+    });
+
+
+    
+</script>

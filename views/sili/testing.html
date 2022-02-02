@@ -1,0 +1,27 @@
+{{extend 'layout.html'}}
+<section class="content">
+    <div class="row">
+        <button type="button" class="btn btn-block btn-default btn-flat" onclick="FuncAlert()">Default</button>
+    </div>
+</section>
+
+
+
+    
+<script>       
+    $(document).ready(function(){
+        $(".table").DataTable();
+    });
+
+    function FuncAlert(){
+        // alertify.confirm().set('resizable':true, 'title':'Title','message':'message here').resizeTo('100%','50%');"   
+        // set multiple settings/options
+        alertify.confirm().setHeader('Title'); 
+        // alertify.confirm().setting({'modal':false,'closable':true,'resizable':true }).show();
+
+        // set multiple settings/options
+        // alertify.confirm().setting({'modal':false, 'closable':false});
+        // get a setting/option value
+        alertify.confirm('<table><tr><td>Header</td></tr><tr><td>Row</td></tr></table>').set('resizable',true).resizeTo('50%','50%');
+    }
+</script>

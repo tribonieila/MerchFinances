@@ -1,0 +1,73 @@
+{{extend 'layout.html'}}
+<section class="content">
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="box box-danger">
+                <div class="box-header with-border">
+                    <h3 class="box-title">Master Account</h3>
+                </div>
+                <div class="box-body">
+                    {{=form.custom.begin}}
+                    <div class="form-horizontal">
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">Account sub-group ID</label>
+                            <div class="col-sm-8">{{=form.custom.widget.account_sub_group_id}}</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">Chart of account group code</label>
+                            <div class="col-sm-8">{{=form.custom.widget.chart_of_account_group_code}}</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">Account Code</label>
+                            <div class="col-sm-8">{{=form.custom.widget.account_code}}</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">Account Name</label>
+                            <div class="col-sm-8">{{=form.custom.widget.account_name}}</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">Account Type</label>
+                            <div class="col-sm-8">{{=form.custom.widget.master_account_type_id}}</div>
+                        </div>                        
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label"></label>
+                            <div class="col-sm-8">                                
+                                <input class="btn btn-success" type="button" value="submit" onClick="onSubmit()"/>
+                                <input class="btn btn-warning" type="button" value="clear" onClick="onClear()"/>
+                            </div>
+                        </div>                    
+                    </div>
+                    {{=form.custom.end}}                    
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="box">
+                <div class="box-body">    
+                    {{=table}}
+                </div>
+            </div>
+        </div>
+    </div>    
+</section>             
+<script>
+    $(document).ready(function(){
+        $('#Master_Account_chart_of_account_group_code').prop('readonly', true);
+        $(".table").DataTable();
+        $("#Master_Account_account_sub_group_id").change(function(){
+            console.log("Change")
+            ajax("{{=URL('master','patch_master_account_group_id')}}",['account_sub_group_id']);
+        });
+    })
+    function onClear(){        
+        window.location.replace('{{=URL('master','get_master_account_grid')}}'); 
+    }
+    function onSubmit(){        
+        ajax("{{=URL('master','patch_master_account_id', args = request.args(0))}}",['account_sub_group_id','account_code','account_name','master_account_type_id','chart_of_account_group_code'])
+    }
+
+</script>

@@ -1,0 +1,58 @@
+{{=table}}
+{{=form.custom.begin}}
+<table class="table">    
+    <tr><td style="width:200px;">Account Code</td><td>Description</td><td style="width:170px;">Date From</td><td style="width:170px;">Date To</td><td style="width:170px;">Amount</td><td style="width:70px;"></td></tr>
+    <tr>
+        <td>{{=form.custom.widget.account_code}}</td>
+        <td>{{=form.custom.widget.description}}</td>
+        <td>{{=form.custom.widget.date_from}}</td>
+        <td>{{=form.custom.widget.date_to}}</td>
+        <td>{{=form.custom.widget.amount}}</td>
+        <td><button type="submit" class="btn btn-success btn-flat pull-right">Insert +</button></td>
+    </tr>
+    
+</table>
+{{=form.custom.end}}
+
+<style>
+    .notie-container {
+        box-shadow: none;
+        
+    }    
+</style>
+
+<script type="text/javascript">
+$(document).ready(function(){
+    $('input[type=text]').attr('autocomplete','off');
+    $('input[type=number]').attr('autocomplete','off');
+    document.getElementById("Debit_Credit_Transaction_Temporary_account_code").focus();
+
+    $("#Debit_Credit_Transaction_Temporary_date_from, #Debit_Credit_Transaction_Temporary_date_to").prop( "disabled", true );
+    if ($("#no_table_note_type").val() == "Stand Rent") {
+        $("#Debit_Credit_Transaction_Temporary_date_from, #Debit_Credit_Transaction_Temporary_date_to" ).prop( "disabled", false );
+    } else {
+        $("#no_table_brand_code_id").prop( "disabled", true );
+        $("#Debit_Credit_Transaction_Temporary_date_from, #Debit_Credit_Transaction_Temporary_date_to").val("");
+    }
+    $("#no_table_note_type").change(function(){
+        if ($("#no_table_note_type").val() == "Stand Rent") {
+            $("#Debit_Credit_Transaction_Temporary_date_from, #Debit_Credit_Transaction_Temporary_date_to" ).prop( "disabled", false );
+        } else {
+            $("#no_table_brand_code_id").prop( "disabled", true );
+            $("#Debit_Credit_Transaction_Temporary_date_from, #Debit_Credit_Transaction_Temporary_date_to").val("");
+        }
+    });
+    $("#btnSend").click(function(){
+        ajax('{{=URL('account_transaction','post_debit_credit_tranx_tmp')}}',['account_code','description_1','description_2','date_from','date_to','amount','ticket_no_id'])        
+    });
+    $("#Debit_Credit_Transaction_Temporary_account_code").change(function(){
+        // alertify.set('notifier','position', 'bottom-center');        
+        
+        ajax("{{=URL('account_transaction','get_account_info_id')}}",['account_code'],'flash_info');
+    });
+
+    $(".dele").click(function(){
+        console.log('delete');
+    });
+});
+</script>

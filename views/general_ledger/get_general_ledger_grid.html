@@ -1,0 +1,66 @@
+{{extend 'layout.html'}}
+<section class="content">
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="box box-danger">
+                <div class="box-header with-border">
+                    <h3 class="box-title">General Ledger Form</h3>                               
+                </div>
+                <div class="box-body">
+                    {{import datetime}}
+                    {{=form.custom.begin}}
+                    <div class=col-xs-4>
+                        <div class="form-group">
+                            <label>Start Date</label>
+                            <input type="date" class="form-control" name="start_date" id="start_date" value={{=request.now.date()}}>
+                        </div>                     
+                    </div>
+                    <div class=col-xs-4>
+                        <div class="form-group">
+                            <label>End Date</label>
+                            <input type="date" class="form-control" name="start_date" id="start_date" value={{=request.now.date()}}>
+                        </div>                     
+                    </div>
+                    <div class=col-xs-4>
+                        <div class="form-group">
+                            <label>Transaction Group Type</label>
+                            {{=form.custom.widget.transaction_group_type}}
+                        </div>                     
+                    </div>
+                    <button type="button" class="btn btn-block btn-primary btn-flat" id="btnSubmit">Submit</button>
+
+                    {{=form.custom.end}}                    
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xs-12">
+            <div class="box">
+                <div class="box-header with-border">
+                    <h3 class="box-title">General Ledger Grid</h3>                               
+                </div>
+                <div class="box-body">                             
+                    {{=LOAD('general_ledger','load_general_ledger_grid.load', ajax=True,extension=False)}}
+                </div>
+            </div>
+        </div>
+    </div>                
+</section>
+
+<script>
+$(document).ready(function(){            
+    $("#btnSubmit").prop("disabled", true);
+    $("#no_table_transaction_group_type").change(function(){        
+        if ($("#no_table_transaction_group_type").val() != "") {            
+            $("#btnSubmit").prop("disabled", false);
+        } else {            
+            $("#btnSubmit").prop("disabled", true);
+        }
+    });
+
+    $("#btnSubmit").click(function(){
+        ajax("{{=URL('general_ledger','post_general_ledger_session')}}", ['start_date','end_date','transaction_group_type'])                
+    });
+    $(".table").DataTable();
+});
+</script>

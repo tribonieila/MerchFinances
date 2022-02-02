@@ -1,0 +1,66 @@
+{{extend 'layout.html'}}
+<section class="content">
+    <div class="row">
+        <div class="col-xs-8">
+            <div class="box">
+                <div class="box-header with-border">
+                    <h3 class="box-title">Account Voucher Transaction Type Grid</h3>                                       
+                </div>                        
+                <div class="box-body">    
+                    {{=table}}
+                </div>
+            </div>
+        </div>        
+        <div class="col-xs-4">
+            <div class="box box-danger">
+                <div class="box-header with-border">
+                    <h3 class="box-title">Account Voucher Transaction Type Form</h3>
+                </div>
+                <div class="box-body">
+                    {{=form.custom.begin}}
+                    <div class="form-horizontal">
+                        <div class="form-group">
+                            <label class="col-sm-5 control-label">Voucher Serial No</label>
+                            <div class="col-sm-7">{{=form.custom.widget.voucher_serial_no}}</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-5 control-label">Transaction Type</label>
+                            <div class="col-sm-7">{{=form.custom.widget.account_voucher_transaction_type}}</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="col-sm-5 control-label">Transaction Code</label>
+                            <div class="col-sm-7">{{=form.custom.widget.account_voucher_transaction_code}}</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-5 control-label">Transaction Name</label>
+                            <div class="col-sm-7">{{=form.custom.widget.account_voucher_transaction_name}}</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="col-sm-5 control-label"></label>
+                            <div class="col-sm-7">
+                                <input class="btn btn-flat btn-primary" type="submit" value="Submit">
+                                <input class="btn btn-flat btn-warning" type="button" value="Clear" onClick="onClear()"/>
+                            </div>
+                        </div>                    
+                    </div>
+                    {{=form.custom.end}}                    
+                </div>
+            </div>
+        </div>
+
+
+    </div>    
+</section>             
+
+
+<script>
+    $(document).ready(function(){
+        $(".table").DataTable();
+    })
+    function onClear(){        
+        window.location.replace('{{=URL('settings','get_account_transaction_type_grid')}}'); 
+
+    }
+</script>

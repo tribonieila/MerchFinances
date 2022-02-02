@@ -1,0 +1,55 @@
+{{extend 'layout.html'}}
+<section class="content">
+    <div class="col-xs-8">
+        <div class="box">
+            <div class="box-body">
+                {{=table}}
+            </div>                
+        </div>            
+    </div>         
+    <div class="col-xs-4">
+        <div class="box box-danger">
+            <div class="box-header with-border">
+                <h3 class="box-title">Batch Posting Sequence</h3>
+            </div>
+            <div class="box-body">
+                {{=form.custom.begin}}
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <label class="col-sm-6 control-label">Prefix Sequence</label>
+                        <div class="col-sm-6">{{=form.custom.widget.prefix_seq}}</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-6 control-label">Prefix Sequence Name</label>
+                        <div class="col-sm-6">{{=form.custom.widget.prefix_seq_name}}</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-6 control-label">Sequence No</label>
+                        <div class="col-sm-6">{{=form.custom.widget.sequence_no}}</div>
+                    </div>
+    
+                    <div class="form-group">
+                        <label class="col-sm-6 control-label"></label>
+                        <div class="col-sm-6">                            
+                            <input class="btn btn-flat btn-primary" type="submit" value="Submit">
+                            <input class="btn btn-flat btn-warning" type="button" value="clear" onClick="onClear()"/>
+                        </div>
+                    </div>                    
+                </div>
+                {{=form.custom.end}}
+            </div>
+        </div>
+    </div>      
+</section>                
+
+
+<script>
+    $(document).ready(function(){
+        $(".table").DataTable();
+    })
+    function onClear(){
+        console.log("Clear")
+        window.location.replace('{{=URL('settings','get_batch_posting_sequence')}}'); 
+
+    }
+</script>

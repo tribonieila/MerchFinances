@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<!--[if (gt IE 9)|!(IE)]><!--> <html class="no-js" lang="{{=T.accepted_language or 'en'}}"> <!--<![endif]-->
+  <head>
+    <meta charset="utf-8">
+    <!-- www.phpied.com/conditional-comments-block-downloads/ -->
+    <!-- Always force latest IE rendering engine
+         (even in intranet) & Chrome Frame
+         Remove this if you use the .htaccess -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge{{=not request.is_local and ',chrome=1' or ''}}">
+    <!--  Mobile Viewport Fix
+          j.mp/mobileviewport & davidbcalhoun.com/2010/viewport-metatag
+          device-width: Occupy full width of the screen in its current orientation
+          initial-scale = 1.0 retains dimensions instead of zooming out if page height > device height
+          user-scalable = yes allows the user to zoom in -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">    
+    <title>{{=T("Merch Finance")}}</title>
+    <!-- http://dev.w3.org/html5/markup/meta.name.html -->
+    <meta name="application-name" content="{{=request.application}}">
+    <!-- Speaking of Google, don't forget to set your site up:
+         http://google.com/webmasters -->
+    <meta name="google-site-verification" content="">
+    <!-- include stylesheets -->
+    <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"/> -->
+    <link rel="stylesheet" href="{{=URL('static','dist/fontawesome-free-5.15.2-web/css/all.min.css')}}"/>
+    <!-- <link rel="stylesheet" href="{{=URL('static','css/bootstrap.min.css')}}"/> -->
+    <!-- <link rel="stylesheet" href="{{=URL('static','css/web2py-bootstrap4.css')}}"/> -->
+    <link rel="shortcut icon" href="{{=URL('static','images/merch_logo_9VV_icon.ico')}}" type="image/x -icon">
+    <link rel="apple-touch-icon" href="{{=URL('static','images/favicon.png')}}">
+
+    <link rel="stylesheet" href="{{=URL('static','dist/css/bootstrap.min.css')}}"/>
+    <link rel="stylesheet" href="{{=URL('static','dist/css/AdminLTE.min.css')}}"/>
+    <link rel="stylesheet" href="{{=URL('static','dist/css/skin-red.min.css')}}"/>
+    <link rel="stylesheet" href="{{=URL('static','dist/bootstrap-table-master/dist/bootstrap-table.min.css')}}"/>
+    <link rel="stylesheet" href="{{=URL('static','dist/alertify/css/alertify.min.css')}}"/>
+    <link rel="stylesheet" href="{{=URL('static','dist/alertify/css/themes/default.css')}}"/>    
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.20/css/dataTables.bootstrap4.min.css"/> 
+    <link rel="stylesheet" href="{{=URL('static','dist/alertify/css/alertify.min.css')}}"/>
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/notie/dist/notie.min.css">
+
+	  <script src="{{=URL('static','dist/pace-1.0.2/pace.min.js')}}"></script>
+    <link rel="stylesheet" href="{{=URL('static','dist/pace-1.0.2/themes/silver/pace-theme-corner-indicator.css')}}"/>
+    <!-- All JavaScript at the bottom, except for Modernizr which enables
+         HTML5 elements & feature detects -->
+    <script src="{{=URL('static','js/modernizr-2.8.3.min.js')}}"></script>
+    <!-- Favicons -->
+    {{include 'web2py_ajax.html'}} <!-- this includes jquery.js, calendar.js/.css and web2py.js -->
+    {{block head}}{{end}}
+    <style type="text/css">.jqstooltip { position: absolute;left: 0px;top: 0px;visibility: hidden;background: rgb(0, 0, 0) transparent;background-color: rgba(0,0,0,0.6);filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#99000000, endColorstr=#99000000);-ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr=#99000000, endColorstr=#99000000)";color: white;font: 10px arial, san serif;text-align: left;white-space: nowrap;padding: 5px;border: 1px solid white;box-sizing: content-box;z-index: 10000;}.jqsfield { color: white;font: 10px arial, san serif;text-align: left;}</style>
+
+	</head>
+	<body class="skin-red sidebar-mini" style="height: auto; min-height: 100%;" >
+		<!-- <div class="w2p_flash alert alert-dismissable">{{=response.flash or ''}}</div> -->
+		<!-- Navbar ======================================= -->
+
+    <div class="wrapper" style="height: auto; min-height: 100%;">
+		{{if (auth.user_id != None) & (auth.has_membership(role = 'ACCOUNTS')) | (auth.has_membership(role = 'ACCOUNTS MANAGER')) | (auth.has_membership(role = 'MANAGEMENT')) | (auth.has_membership(role = 'ROOT')):}}	
+		<header class="main-header">
+			
+			<!-- Logo -->
+			<!-- <a href="http://localhost:3020/Merch_ERP" class="logo"> -->
+			<a href="http://10.128.4.21/Merch_Finance" class="logo">
+			<!-- mini logo for sidebar mini 50x50 pixels -->
+			<span class="logo-mini">M</span>
+			<!-- logo for regular state and mobile devices -->
+			<span class="logo-lg"><img src="{{=URL('static','images/Merch.jpg')}}" width="200" height="50"></span>
+			</a>
+			<!-- Header Navbar: style can be found in header.less -->
+			<nav class="navbar navbar-static-top">
+			<!-- Sidebar toggle button-->
+			<a href="#" class="sidebar-toggle" data-toggle="push-menu" role="button">
+				<span class="sr-only">Toggle navigation</span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+			</a>
+			<div class="collapse navbar-collapse pull-left" id="navbar-collapse">
+				<section class="content-header">     
+				<h1 style="color:white;">Finance Module</h1>
+				</section>                    
+			</div>
+			<div class="navbar-custom-menu">
+				
+				<ul class="nav navbar-nav">
+				
+				<!-- User Account: style can be found in dropdown.less -->
+				<li class="dropdown user user-menu">
+					<a href="#" class="dropdown-toggle" data-toggle="dropdown">
+					<!-- <img src="../../dist/img/user2-160x160.jpg" class="user-image" alt="User Image"> -->
+					<span class="hidden-xs">{{if auth.user:}}{{=auth.user.first_name}} {{=auth.user.last_name}}{{else:}}LOGIN{{pass}}</span>
+					</a>
+					<ul class="dropdown-menu">
+					<!-- User image -->
+					<li class="user-header">
+						<!-- <img src="../../dist/img/user2-160x160.jpg" class="img-circle" alt="User Image"> -->
+						
+						<p>
+						{{if auth.user:}}{{=auth.user.first_name.upper()}} {{=auth.user.last_name.upper()}}  
+						{{ pass }}
+						</p>
+						
+					</li>
+					<!-- Menu Footer-->
+					<li class="user-footer">
+						<!-- <div class="pull-left">
+						<a href="{{=URL('default','user/profile')}}" class="btn btn-default btn-flat">Profile</a>
+						</div> -->
+						<div class="pull-right">
+						<a href="{{=URL('default','user/logout')}}" class="btn btn-default btn-flat">Sign out</a>
+						</div>
+					</li>
+					</ul>
+				</li>
+				<!-- Control Sidebar Toggle Button -->
+				<!-- <li>
+					<a href="#" data-toggle="control-sidebar"><i class="fa fa-gears"></i></a>
+				</li> -->
+				</ul>
+			</div>
+			</nav>
+		</header>
+		
+		
+		<!-- Left side column. contains the logo and sidebar -->
+		<aside class="main-sidebar">
+			
+			<!-- sidebar: style can be found in sidebar.less -->
+			<section class="sidebar">
+			<!-- Sidebar user panel -->
+			
+			<!-- sidebar menu: : style can be found in sidebar.less -->
+			<ul class="sidebar-menu tree" data-widget="tree">
+				<li class="header">MAIN NAVIGATION</li>
+				
+				<li><a href="{{=URL('default','index')}}"><i class="fa fa-tachometer-alt"></i> <span>Dashboard</span></a></li>
+				<li class="treeview menu">
+				<a href="#">
+					<i class="fa fa-user-check"></i> <span>Workflow</span>
+					<span class="pull-right-container">
+					<i class="fa fa-angle-left pull-right"></i>
+					</span>                  
+				</a>
+				<ul class="treeview-menu">                    
+					<li><a href="{{=URL('account_transaction','get_receipt_voucher_grid')}}"><i class="fa fa-caret-right"></i> Receipt Voucher</a></li>
+					<li><a href="{{=URL('account_transaction','get_rv_confirmation_grid')}}"><i class="fa fa-caret-right"></i> RV Confirmation</a></li>
+					<li><a href="{{=URL('account_transaction','get_payment_voucher_grid')}}"><i class="fa fa-caret-right"></i> Payment Voucher</a></li>
+					<li><a href="#"><i class="fa fa-caret-right"></i> Journal Voucher</a></li>
+					<li><a href="{{=URL('account_transaction','get_debit_credit_note_grid')}}"><i class="fa fa-caret-right"></i> Debit/Credit Note</a></li>
+					<li><a href="#"><i class="fa fa-caret-right"></i> Accounts Reconciliation</a></li>
+
+					<!-- <li><a href="#"><i class="fa fa-caret-right"></i> Workflow 1</a></li>
+					<li><a href="#"><i class="fa fa-caret-right"></i> Workflow 2</a></li>
+					<li><a href="#"><i class="fa fa-caret-right"></i> Workflow 3</a></li> -->
+					
+				</ul>              
+				</li>    
+
+				<li class="treeview menu">
+				<a href="#">
+					<i class="fa fa-server"></i> <span>Master</span>
+					<span class="pull-right-container">
+					<i class="fa fa-angle-left pull-right"></i>
+					</span>                  
+				</a>
+				<ul class="treeview-menu">                    
+					<li><a href="{{=URL('master','get_master_account_grid')}}"><i class="fa fa-caret-right"></i> Master Accounts</a></li>
+					<li><a href="#"><i class="fa fa-caret-right"></i> Banks</a></li>                
+				</ul>              
+				</li>            
+							
+				<li class="treeview menu">
+				<a href="#">
+					<i class="fa fa-user-tag"></i> <span>Accounts Transactions</span>
+					<span class="pull-right-container">
+					<i class="fa fa-angle-left pull-right"></i>
+					</span>
+				</a>                                 
+				<ul class="treeview-menu" >
+					<li><a href="{{=URL('account_transaction','get_receipt_voucher_grid')}}"><i class="fa fa-caret-right"></i> Receipt Voucher</a></li>
+					<li><a href="{{=URL('account_transaction','get_payment_voucher_grid')}}"><i class="fa fa-caret-right"></i> Payment Voucher</a></li>
+					<li><a href="#"><i class="fa fa-caret-right"></i> Journal Voucher</a></li>
+					<li><a href="{{=URL('account_transaction','get_debit_credit_note_grid')}}"><i class="fa fa-caret-right"></i> Debit/Credit Note</a></li>
+					<li><a href="#"><i class="fa fa-caret-right"></i> Accounts Reconciliation</a></li>
+				</ul>
+				</li>     
+
+				<li class="treeview menu">  
+					<a href="#">
+					<i class="fa fa-print"></i> <span>Reports</span>
+					<span class="pull-right-container">
+						<i class="fa fa-angle-left pull-right"></i>
+					</span>
+					</a>
+					<ul class="treeview-menu">
+					<li><a href="{{=URL('reports','get_account_code_movement_form')}}"><i class="fa fa-caret-right"></i> Account Card</a></li>
+					<li><a href="{{=URL('reports','get_statement_of_account_form')}}"><i class="fa fa-caret-right"></i> Statement of Accounts</a></li>                                    
+					<li><a href="#"><i class="fa fa-caret-right"></i> Overdues</a></li>                  
+					<li><a href="#"><i class="fa fa-caret-right"></i> Balance Sheet</a></li>        
+					<li><a href="#"><i class="fa fa-caret-right"></i> Trial Balance</a></li>                                    
+					<li><a href="#"><i class="fa fa-caret-right"></i> Financial Statement</a></li>
+					<li><a href="{{=URL('account_transaction','get_debit_credit_note_grid_reports')}}"><i class="fa fa-caret-right"></i> Debit/Credit Note</a></li>
+					</ul>
+				</li>              
+
+				<li class="treeview menu">
+				<a href="#"><i class="fa fa-mail-bulk"></i> <span>GL Account Posting</span>
+					<span class="pull-right-container">
+					<i class="fa fa-angle-left pull-right"></i>
+					</span>
+				</a>
+				<ul class="treeview-menu">
+					<li><a href="{{=URL('general_ledger','get_general_ledger_account_posting_grid', args = 1)}}"><i class="fa fa-caret-right"></i> Purchase Receipt</a></li>                
+					<li><a href="{{=URL('general_ledger','get_general_ledger_account_posting_grid', args = 2)}}"><i class="fa fa-caret-right"></i> Sales Invoice</a></li>
+					<li><a href="{{=URL('general_ledger','get_general_ledger_account_posting_grid', args = 3)}}"><i class="fa fa-caret-right"></i> Cash Sales</a></li>
+					<li><a href="{{=URL('general_ledger','get_general_ledger_account_posting_grid', args = 4)}}"><i class="fa fa-caret-right"></i> Sales Return</a></li>
+					<li><a href="{{=URL('general_ledger','get_general_ledger_account_posting_grid', args = 6)}}"><i class="fa fa-caret-right"></i> Purchase Return/ ADJ -</a></li>
+					<li><a href="{{=URL('general_ledger','get_general_ledger_account_posting_grid', args = 7)}}"><i class="fa fa-caret-right"></i> Stock Adjustment Plus</a></li>
+					<li><a href="{{=URL('general_ledger','get_general_ledger_account_posting_grid', args = 9)}}"><i class="fa fa-caret-right"></i> Obsolescences of Stock</a></li>
+					
+				</ul>
+				</li>
+
+				<li class="treeview menu">
+				<a href="#">
+					<i class="fa fa-columns"></i> <span>General Ledger</span>
+					<span class="pull-right-container">
+					<i class="fa fa-angle-left pull-right"></i>
+					</span>                  
+				</a>
+				<ul class="treeview-menu">
+					<li><a href="#"><i class="fa fa-caret-right"></i> Summary</a></li>
+					<li><a href="{{=URL('general_ledger','get_general_ledger_grid')}}"><i class="fa fa-caret-right"></i> Detailed</a></li>
+				</ul>
+				</li>
+
+				<li class="treeview menu">
+				<a href="#">
+					<i class="fa fa-user-tag"></i> <span>MV Sales Posting</span>
+					<span class="pull-right-container">
+					<i class="fa fa-angle-left pull-right"></i>
+					</span>                  
+				</a>
+				<ul class="treeview-menu">
+					<li><a href="#"><i class="fa fa-caret-right"></i> Credit Invoice</a></li>
+					<li><a href="#"><i class="fa fa-caret-right"></i> Sales Return</a></li>
+				</ul>
+				</li>
+
+				<li class="treeview menu">  
+				<a href="#">
+					<i class="fa fa-project-diagram"></i> <span>Stock Transactions</span>
+					<span class="pull-right-container">
+					<i class="fa fa-angle-left pull-right"></i>
+					</span>                  
+				</a>
+				<ul class="treeview-menu">                    
+					<li><a href="{{=URL('consolidated','get_consolidated_transactions_grid', args = 1)}}"><i class="fa fa-caret-right"></i> Purchase Receipt</a></li>                
+					<li><a href="{{=URL('consolidated','get_consolidated_transactions_grid', args = 2)}}"><i class="fa fa-caret-right"></i> Sales Invoice</a></li>
+					<li><a href="{{=URL('consolidated','get_consolidated_transactions_grid', args = 3)}}"><i class="fa fa-caret-right"></i> Cash Sales</a></li>
+					<li><a href="{{=URL('consolidated','get_consolidated_transactions_grid', args = 4)}}"><i class="fa fa-caret-right"></i> Sales Return</a></li>
+					<li><a href="{{=URL('consolidated','get_consolidated_transactions_grid', args = 5)}}"><i class="fa fa-caret-right"></i> Stock Transfer</a></li>
+					<li><a href="{{=URL('consolidated','get_consolidated_transactions_grid', args = 6)}}"><i class="fa fa-caret-right"></i> Stock Adjustment</a></li>
+					<li><a href="{{=URL('consolidated','get_consolidated_transactions_grid', args = 9)}}"><i class="fa fa-caret-right"></i> Obsolescence</a></li>
+				</ul>              
+				</li>                
+				{{if (auth.user_id != None) &  (auth.has_membership(role = 'ROOT')):}}
+				<li>
+				<a href="#">
+					<i class="fa fa-wrench"></i> <span>Utilities</span>
+				</a>
+				</li>
+
+				<li class="treeview menu">
+				<a href="#">
+					<i class="fa fa-cogs"></i> <span>Settings</span>
+					<span class="pull-right-container">
+					<i class="fa fa-angle-left pull-right"></i>
+					</span>
+				</a>                                 
+				<ul class="treeview-menu" >                
+					<li><a href="{{=URL('settings','get_receipt_voucher_draft_grid')}}"><i class="fa fa-caret-right"></i> Receipt Voucher TRNX Draft</a></li>								
+					<li><a href="{{=URL('settings','get_accounts_workflow_status_grid')}}"><i class="fa fa-caret-right"></i> Accounts Workflow Status</a></li>								
+					<li><a href="{{=URL('settings','get_gl_transaction_serial_grid')}}"><i class="fa fa-caret-right"></i> GL Transaction Serial</a></li>								
+					<li><a href="{{=URL('settings','get_general_account_grid')}}"><i class="fa fa-caret-right"></i> General Account</a></li>								
+					<li><a href="{{=URL('settings','get_gl_description_library_grid')}}"><i class="fa fa-caret-right"></i> GL Description Library</a></li>
+					<li><a href="{{=URL('settings','get_account_transaction_type_grid')}}"><i class="fa fa-caret-right"></i> A/C Voucher TXN Type</a></li>
+					<li><a href="{{=URL('settings','get_account_transaction_payment_mode_grid')}}"><i class="fa fa-caret-right"></i> A/C TXN Payment Mode</a></li>
+					<li><a href="{{=URL('settings','get_financial_statement_group_grid')}}"><i class="fa fa-caret-right"></i> Financial Statement Group</a></li>
+					<li><a href="{{=URL('settings','get_chart_account_main_group')}}"><i class="fa fa-caret-right"></i> COF Main Group</a></li>
+					<li><a href="{{=URL('settings','get_chart_of_accounts_grid')}}"><i class="fa fa-caret-right"></i> Chart of Accounts</a></li>								                
+					<li><a href="{{=URL('settings','get_transaction_prefix_grid')}}"><i class="fa fa-caret-right"></i> Transaction Prefix</a></li>
+					<li><a href="{{=URL('settings','get_debit_credit_status_grid')}}"><i class="fa fa-caret-right"></i> Debit/Credit Note Status</a></li>
+					<li><a href="{{=URL('account_transaction','get_business_unit_grid')}}"><i class="fa fa-caret-right"></i> Business Unit</a></li>
+					<li><a href="{{=URL('settings','get_general_department_grid')}}"><i class="fa fa-caret-right"></i> Gen. Dept. Cost Center</a></li>
+					<li><a href="{{=URL('settings','get_location_cost_grid')}}"><i class="fa fa-caret-right"></i> Location Cost Center</a></li>
+					<li><a href="{{=URL('settings','get_transaction_payment_type_grid')}}"><i class="fa fa-caret-right"></i> TXN Payment Type</a></li>
+					<li><a href="{{=URL('account_transaction','get_department_grid')}}"><i class="fa fa-caret-right "></i> Department</a></li>
+					<li><a href="{{=URL('settings','get_currency_grid')}}"><i class="fa fa-caret-right"></i> Currency</a></li>
+					<li><a href="{{=URL('account_transaction','get_status_grid')}}"><i class="fa fa-caret-right"></i> Status</a></li>
+					<li><a href="{{=URL('settings','get_stand_rent_grid')}}"><i class="fa fa-caret-right"></i> Stand Rent</a></li>
+					<li><a href="{{=URL('account_transaction','get_department_head_grid')}}"><i class="fa fa-caret-right"></i> Department Head</a></li>
+					<li><a href="{{=URL('settings','get_bank_master_grid')}}"><i class="fa fa-caret-right"></i> Bank Master</a></li>
+					<li><a href="{{=URL('settings','get_batch_posting_sequence')}}"><i class="fa fa-caret-right"></i> Batch Posting Sequence</a></li>
+				</ul>
+				</li>         
+				{{pass}}        
+				<li><a href="{{=URL('default','get_help')}}"><i class="fa fa-question"></i> <span>Help</span></a></li>            
+			</ul>
+			</section>
+		</aside>
+		{{pass}}
+		
+		<!-- Content Wrapper. Contains page content -->
+		
+		<div class="content-wrapper">
+				
+			{{block center}}                      
+			{{include}}          
+			{{end}}
+			
+		</div>
+		
+
+		<!-- /.content-wrapper -->
+		<footer class="main-footer">
+			<div class="pull-right hidden-xs">
+			<b>Version</b> 1.1.0
+			</div>
+			<strong>2019-{{=request.now.year}} <a href="#">Merch & Partners Co. WLL</a>.</strong> 
+		</footer>
+		
+
+		<!-- Add the sidebar's background. This div must be placed
+				immediately after the control sidebar -->
+		<div class="control-sidebar-bg"></div>
+      
+    </div>   
+
+    <!-- The javascript =============================== -->
+    <script src="https://npmcdn.com/tether@1.2.4/dist/js/tether.min.js"></script>
+    <script src="{{=URL('static','js/bootstrap.bundle.min.js')}}"></script>
+    <script src="{{=URL('static','js/web2py-bootstrap4.js')}}"></script>
+
+    <script src="{{=URL('static','dist/js/jquery.min.js')}}"></script>
+    <script src="{{=URL('static','dist/js/bootstrap.min.js')}}"></script>
+    <script src="{{=URL('static','dist/js/adminlte.min.js')}}"></script>
+    <script src="{{=URL('static','dist/js/demo.js')}}"></script>
+    <script src="{{=URL('static','dist/bootstrap-table-master/dist/bootstrap-table.min.js')}}"></script>    
+    <script src="{{=URL('static','dist/alertify/alertify.min.js')}}"></script>    
+    
+    <script src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.20/js/dataTables.bootstrap4.min.js"></script>
+    <script src="https://unpkg.com/notie"></script>
+   
+    {{block page_js}}{{end page_js}}
+    {{if response.google_analytics_id:}}
+    <!-- Analytics ==================================== -->
+    <script src="{{=URL('static','js/analytics.min.js')}}"></script>
+    <script type="text/javascript">
+      analytics.initialize({
+      'Google Analytics':{trackingId:'{{=response.google_analytics_id}}'}
+      });
+    </script>
+    {{pass}}
+  </body>
+</html>

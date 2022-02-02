@@ -1,0 +1,63 @@
+<div class="box">
+    <div class="box-header with-border">
+        <h3 class="box-title">Receipt Voucher Grid</h3>
+    </div>
+    <div class="box-body table-responsive">                
+        {{=table}}        
+    </div>
+</div>
+
+<div class="box">
+    <div class="box-header with-border">
+        <h3 class="box-title">Receipt Voucher Form</h3>
+    </div>
+    {{=form.custom.begin}}
+    <div class="box-body">        
+        
+        <div class="row">
+            <div class="form-group">
+                <div class="col-lg-2">                              
+                    <label>Account Credit Code</label>
+                    {{=form.custom.widget.account_code}}    
+                </div>                  
+                <div class="col-lg-2">      
+                    <label>Dept.</label>
+                    {{=form.custom.widget.department_id}}    
+                </div>                  
+
+                <div class="col-lg-1">      
+                    <label>Type</label>
+                    {{=form.custom.widget.transaction_type_id}}    
+                </div>                  
+                <div class="col-lg-2">      
+                    <label>Account Reference</label>
+                    {{=form.custom.widget.account_reference}}    
+                </div>                  
+                <div class="col-lg-3">      
+                    <label>Description</label>
+                    {{=form.custom.widget.description}}    
+                </div>                  
+                <div class="col-lg-2">      
+                    <label>Amount</label>
+                    {{=form.custom.widget.amount_paid}}    
+                </div>                  
+
+            </div>
+        </div>
+    </div>    
+    <div class="box-footer">
+        <div class="row">
+            <div class="col-lg-12"> 
+                <input class="btn btn-block btn-primary btn-flat" type="submit" value=" + ADD" id="btnadd">
+            </div>
+        </div>
+    </div>
+    {{=form.custom.end}}
+</div>
+
+<script>
+    $(document).ready(function(){        
+        $('input[type=text]').attr('autocomplete','off');
+        $('input[type=number]').attr('autocomplete','off');
+    });
+</script>

@@ -1,0 +1,28 @@
+{{extend 'layout.html'}}
+<section class="content">
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="box">
+                <div class="box-header with-border">
+                    <h3 class="box-title">Purchase Receipt Grid</h3>           
+                    <div class="box-tools pull-right">                        
+                        <button type="button" id = "btnPost" class="btn btn-block btn-success btn-flat btn-sm">Post In General Ledger </button>                        
+                    </div>          
+                    
+                </div>
+                <div class="box-body">                    
+                    {{=table}}                      
+                </div>
+            </div>
+        </div>
+    </div>                
+</section>
+
+<script>
+$(document).ready(function(){    
+    $("#btnPost").click(function(){
+        ajax("{{=URL('general_ledger','post_in_general_ledger', args = 1)}}")                
+    });
+    $(".table").DataTable();
+});
+</script>

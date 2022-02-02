@@ -1,0 +1,65 @@
+{{extend 'layout.html'}}
+<section class="content">
+	<div class="row">
+        <div class="col-xs-10">
+            <div class="box box-default">
+				<div class="box-header with-border">
+					<h3 class="box-title">Statement of Account Grid</h3>
+					<div class="box-tools pull-right">
+						<button type="button" class="btn btn-box-tool" id="idPrint" onclick="PrintAC()" data-toggle="tooltip" title="Print" data-widget="chat-pane-toggle" data-original-title="Contacts"><i class="fa fa-print"></i></button>
+					</div>	                    
+				</div>
+                <div class="box-body">
+                    {{=LOAD('reports','load_statement_of_account_grid.load()', ajax = True, extension = False, target = 'GEtbl')}}
+                </div>
+
+            </div>
+        </div>
+		<div class="col-xs-2">
+			<div class="box box-danger">
+				<div class="box-header with-border">
+					<h3 class="box-title">Statement of Account Form</h3>
+				</div>
+				<div class="box-body">
+                    {{=form.custom.begin}}
+                    <div class="form-group">
+                        <label class="control-label">Account Code</label>
+                        {{=form.custom.widget.account_code}}
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label">Start Date</label>							
+                        <input type="date" class="form-control" id="start_date" name = "start_date" value = {{=request.now}}>							
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label">End Date</label>														
+                        <input type="date" class="form-control" id="end_date" name = "end_date" value = {{=request.now}}>                        
+                    </div>
+                    <button type="button" class="btn btn-block btn-primary btn-flat" id="idSubmit" onclick="btnSubmit()">Submit</button>
+                    {{=form.custom.end}}					
+				</div>									
+			</div>
+		</div>
+	</div>	
+</section>
+
+
+<script>
+    $(document).ready(function(){
+        $("#idPrint, #idSubmit").attr("disabled","disabled");
+        $('.table').DataTable();
+        $("#no_table_account_code").change(function(){
+            $("#idSubmit").attr("disabled","disabled");          
+            if ($("#no_table_account_code").val() != "") {                             
+                $("#idSubmit").removeAttr("disabled");
+            }
+        });
+    });
+
+    function btnSubmit(){
+        ajax("{{=URL('reports','patch_statement_of_account_id')}}", ['account_code'])
+    }
+
+    function PrintAC(){
+        window.open("{{=URL('print_reports','get_statement_of_account_grid')}}");
+    }
+</script>

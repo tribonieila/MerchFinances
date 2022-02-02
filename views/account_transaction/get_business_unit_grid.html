@@ -1,0 +1,46 @@
+{{extend 'layout.html'}}
+
+<section class="content">
+  <div class="row">      
+    <div class="col-xs-12">      
+      <div class="box">
+        <div class="box-header with-border">
+            <h3 class="box-title">Business Name Grid</h3>                                       
+        </div>                
+        <div class="box-body table-responsive no-padding">                        
+            {{=table}}
+        </div>
+        <div class="box-footer clearfix">
+            <button type="button" class="btn btn-primary btn-flat pull-right" data-toggle="modal" data-target="#modal-default">Place New Business Name</button>            
+        </div>
+      </div>
+    </div>
+  </div>
+</section> 
+{{=form.custom.begin}}
+<div class="modal fade" id="modal-default" style="display: none;">
+    <div class="modal-dialog">
+        <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">×</span></button>
+            <h4 class="modal-title">Debit/Credit Note Status Form</h4>
+        </div>
+        <div class="modal-body">          
+            <div class="form-horizontal">
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">Business Name:</label>
+                    <div class="col-sm-10">
+                        {{=form.custom.widget.business_name}}
+                    </div>                
+                </div>                      
+            </div>  
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-default btn-flat pull-left" data-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary btn-flat">Save Changes</button>
+        </div>
+        </div>
+    </div>
+</div>
+{{=form.custom.end}}

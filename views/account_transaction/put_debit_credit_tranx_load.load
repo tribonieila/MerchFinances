@@ -1,0 +1,72 @@
+{{=table}}
+<div class="box-footer">    
+    <div class="col-md-2">        
+        <div class="form-group">
+            <label>Account Code</label>            
+            <input type="text" class="form-control" id="account_code" name="account_code" placeholder="Account Code">
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="form-group">
+            <label>Description 1</label>
+            <input type="text" class="form-control" id="description_1" name="description_1" placeholder="Description 1">
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="form-group">
+            <label>Description 2</label>
+            <input type="text" class="form-control" id="description_2" name="description_2" placeholder="Description 2">
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="form-group">
+            <label>Date From</label>
+            <input type="text" class="form-control date" id="date_from" name="date_from" placeholder="Date From">
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="form-group">
+            <label>Date To</label>
+            <input type="text" class="form-control date" id="date_to" name="date_to" placeholder="Date To">
+        </div>
+    </div>
+    <div class="col-md-1">
+        <div class="form-group">
+            <label>Amount</label>
+            <input type="text" class="form-control" id="amount" name="amount" placeholder="Amount">
+        </div>
+    </div>
+    <div class="col-md-1">
+        <div class="form-group">
+            <label>Action</label>
+            <button type="submit" class="btn btn-block btn-success btn-flat" id="btnSend">Send</button>
+        </div>
+    </div>
+    
+</div>
+
+<script type="text/javascript">
+$(document).ready(function(){
+    $("#date_from, #date_to").prop( "disabled", true );
+    if ($("#Debit_Credit_note_type").val() == "Stand Rent") {
+        $("#date_from, #date_to" ).prop( "disabled", false );
+    } else {
+        $("#Debit_Credit_brand_code_id").prop( "disabled", true );
+        $("#date_from, #date_to").val("");
+    }
+    $("#Debit_Credit_note_type").change(function(){
+        if ($("#Debit_Credit_note_type").val() == "Stand Rent") {
+            $("#date_from, #date_to" ).prop( "disabled", false );
+            console.log('false');
+            
+        } else {
+            $("#Debit_Credit_brand_code_id").prop( "disabled", true );
+            $("#date_from, #date_to").val("");
+            console.log('true');
+        }
+    });
+    $("#btnSend").click(function(){
+        ajax('{{=URL('account_transaction','put_debit_credit_tranx_tmp')}}',['account_code','description_1','description_2','date_from','date_to','amount','ticket_no_id'])        
+    });
+});
+</script>
