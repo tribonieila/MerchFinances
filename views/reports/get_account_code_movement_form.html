@@ -26,7 +26,7 @@
 						{{=form.custom.widget.account_code}}
 					</div>
 					<div class="form-group">
-						<label class="control-label">Year</label>
+						<label class="control-label">FY C/O Balance</label>
 						{{=form.custom.widget.year}}
 					</div>
 					<div class="form-group">
@@ -63,17 +63,32 @@
 	$(document).ready(function(){
 		$("#idPrint, #idSubmit").attr("disabled","disabled");
 		$('.table').DataTable();
+		var currentTime = new Date()
+
 
 		$("#no_table_account_code, #no_table_year, #no_table_type").change(function(){
 			$("#idPrint, #idSubmit").attr("disabled","disabled");
-			if ($("no_table_account_code").val != "" && $("#no_table_year").val() != 0 && $("#no_table_type").val() != 0) {				
+			if ($("no_table_account_code").val != "" && $("#no_table_year").val() != 0 && $("#no_table_type").val() != 0) {		
 				$("#idSubmit").removeAttr("disabled");
 			}
 		});		
+		$("#no_table_year").change(function(){
+			if ($("#no_table_year").val() != currentTime.getFullYear()) {
+				var _start_date = $("#no_table_year").val()+"-01-01" 
+				var _end_date = $("#no_table_year").val()+"-12-31" 
+				$("#start_date").val(_start_date);
+				$("#end_date").val(_end_date);
+				
+			} else {
+				var d = new Date();
+				$("#start_date").val(d.getFullYear()+'-'+((1 + d.getMonth()).toString().padStart(2, '0'))+'-'+d.getDate());
+				$("#end_date").val(d.getFullYear()+'-'+((1 + d.getMonth()).toString().padStart(2, '0'))+'-'+d.getDate());
+			}
+		});
 	});
 
 	function btnSubmit(){
-		ajax("{{=URL('reports','patch_account_card')}}",['account_code','type','dept_code_id','entries','start_date','end_date']);		
+		ajax("{{=URL('reports','patch_account_card')}}",['year','account_code','type','dept_code_id','entries','start_date','end_date']);		
 	}		
 
 	function PrintAC(){		

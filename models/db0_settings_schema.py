@@ -152,10 +152,50 @@ db.define_table('Department_Head_Assignment',
     Field('updated_on', 'datetime', update=request.now, writable = False, readable = False),
     Field('updated_by', db.auth_user, ondelete = 'NO ACTION', update=auth.user_id, writable = False, readable = False))
 
+db.define_table('Merch_Bank_Master',
+    Field('account_code', 'string',length=20),
+    Field('bank_name', 'string',length=50),                
+    Field('status_id','string',length=25,requires = IS_IN_SET([('1','Active'),('2','Inactive')], zero = 'Choose Status')),
+    Field('created_on', 'datetime', default=request.now, writable = False, readable = False),
+    Field('created_by', db.auth_user, ondelete = 'NO ACTION', default=auth.user_id, writable = False, readable = False),
+    Field('updated_on', 'datetime', update=request.now, writable = False, readable = False),
+    Field('updated_by', db.auth_user, ondelete = 'NO ACTION', update=auth.user_id, writable = False, readable = False))
+
 db.define_table('Bank_Master',
     Field('bank_code', 'string',length=20),
     Field('bank_name', 'string',length=50),                
     Field('status_id','string',length=25,requires = IS_IN_SET([('1','Active'),('2','Inactive')], zero = 'Choose Status')),
+    Field('created_on', 'datetime', default=request.now, writable = False, readable = False),
+    Field('created_by', db.auth_user, ondelete = 'NO ACTION', default=auth.user_id, writable = False, readable = False),
+    Field('updated_on', 'datetime', update=request.now, writable = False, readable = False),
+    Field('updated_by', db.auth_user, ondelete = 'NO ACTION', update=auth.user_id, writable = False, readable = False))
+
+db.define_table('Cost_Center_Category_Group',
+    Field('cost_center_category_group_code', 'string', length=15),
+    Field('cost_center_category_group_name', 'string', length=50),
+    Field('created_on', 'datetime', default=request.now, writable = False, readable = False),
+    Field('created_by', db.auth_user, ondelete = 'NO ACTION', default=auth.user_id, writable = False, readable = False),
+    Field('updated_on', 'datetime', update=request.now, writable = False, readable = False),
+    Field('updated_by', db.auth_user, ondelete = 'NO ACTION', update=auth.user_id, writable = False, readable = False))
+
+db.define_table('Cost_Center_Category',
+    Field('cost_center_category_group_id', 'reference Cost_Center_Category_Group', ondelete = 'NO ACTION', requires = IS_IN_DB(db,db.Cost_Center_Category_Group.id,'%(cost_center_category_group_code)s : %(cost_center_category_group_name)s',zero='Choose Cost Group Category')),
+    Field('cost_center_category_code', 'string', length=15),
+    Field('cost_center_category_name', 'string', length=50),
+    Field('created_on', 'datetime', default=request.now, writable = False, readable = False),
+    Field('created_by', db.auth_user, ondelete = 'NO ACTION', default=auth.user_id, writable = False, readable = False),
+    Field('updated_on', 'datetime', update=request.now, writable = False, readable = False),
+    Field('updated_by', db.auth_user, ondelete = 'NO ACTION', update=auth.user_id, writable = False, readable = False))
+
+db.define_table('Cost_Center',
+    Field('cost_center_category_group_id', 'reference Cost_Center_Category_Group', ondelete = 'NO ACTION', requires = IS_IN_DB(db,db.Cost_Center_Category_Group.id,'%(cost_center_category_group_code)s : %(cost_center_category_group_name)s',zero='Choose Cost Group Category')),
+    Field('cost_center_code', 'string', length=15),
+    Field('cost_center_name', 'string', length=50),
+    Field('dept_code_id','reference General_Department_Cost_Center',ondelete='NO ACTION',requires=IS_EMPTY_OR(IS_IN_DB(db,db.General_Department_Cost_Center.id,'%(department_code)s - %(department_name)s',zero='Choose Department'))),                
+    Field('location_cost_center_id','reference General_Location_Cost_Center', ondelete='NO ACTION',requires=IS_EMPTY_OR(IS_IN_DB(db,db.General_Location_Cost_Center.id,'%(location_code)s - %(location_name)s',zero='Choose Location'))),# location cost center id
+    Field('driver','string', length=15), # account code     
+    Field('cost_center_exemption','boolean',default=False),
+    Field('status_id','string',length=25,requires = IS_IN_SET([('1','Active'),('2','Inactive')], zero = 'Choose Status')),    
     Field('created_on', 'datetime', default=request.now, writable = False, readable = False),
     Field('created_by', db.auth_user, ondelete = 'NO ACTION', default=auth.user_id, writable = False, readable = False),
     Field('updated_on', 'datetime', update=request.now, writable = False, readable = False),

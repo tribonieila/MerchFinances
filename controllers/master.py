@@ -74,9 +74,25 @@ def get_master_account_id():
     response.js = "alertify.alert().set({'startMaximized':true, 'title':'Master Account','message':'%s'}).show();" %(XML(table, sanitize = True))    
 
 @auth.requires(lambda: auth.has_membership('ACCOUNTS') |  auth.has_membership('ACCOUNTS MANAGER') | auth.has_membership(role = 'MANAGEMENT') | auth.has_membership('ROOT'))            
-def get_banks_grid():
-
-    return dict()
+def get_merch_bank_master_grid():
+    db.Merch_Bank_Master.status_id.default = 1
+    form = SQLFORM(db.Merch_Bank_Master, request.args(0))
+    if form.process().accepted:
+        response.flash = 'Form save.'
+    elif form.errors:
+        response.flash = 'Form has error.'
+    row = []
+    ctr = 0
+    thead = THEAD(TR(TH('#'),TH('Account Code'),TH('Bank Name'),TH('Action'),_class = 'bg-red'))
+    for n in db().select(orderby = db.Merch_Bank_Master.id):
+        view_lnk = A(I(_class='fa fa-search'), _title='View Row', _type='button  ', _role='button', _class='btn btn-icon-toggle disabled')
+        edit_lnk = A(I(_class='fa fa-user-edit'), _title='Edit Row', _type='button  ', _role='button', _class='btn btn-icon-toggle', _href=URL('master','get_merch_bank_master_grid', args = n.id))
+        dele_lnk = A(I(_class='fa fa-trash'), _title='Delete Row', _type='button  ', _role='button', _class='btn btn-icon-toggle disabled')
+        btn_lnk = DIV(view_lnk, edit_lnk, dele_lnk)
+        row.append(TR(TD(n.id),TD(n.account_code),TD(n.bank_name),TD(btn_lnk)))
+    tbody = TBODY(*row)
+    table = TABLE(*[thead, tbody], _class = 'table')
+    return dict(form = form, table = table)
 
 @auth.requires(lambda: auth.has_membership('ACCOUNTS') |  auth.has_membership('ACCOUNTS MANAGER') | auth.has_membership(role = 'MANAGEMENT') | auth.has_membership('ROOT'))        
 def get_currency_grid():
@@ -94,3 +110,27 @@ def get_currency_grid():
     table = TABLE(*[head, body], _class='table')
     return dict(table = table)
 
+@auth.requires(lambda: auth.has_membership('ACCOUNTS') |  auth.has_membership('ACCOUNTS MANAGER') | auth.has_membership(role = 'MANAGEMENT') | auth.has_membership('ROOT'))        
+def get_master_account_balanced_grid():
+    ctr = 0
+    row = []
+    form = SQLFORM(db.Master_Account_Balance_Current_Year, request.args(0))
+    if form.process().accepted:
+        response.flash = 'Form save.'
+    elif form.errors:
+        response.flash = 'Form has error.'
+    head = THEAD(TR(TD('#'),TD('Financial Year'),TD('Account Code'),TD('Account Name'),TD('Opening Bal.'),TD('Closing Bal.')),_class='bg-red')
+    for n in db().select(orderby = db.Master_Account_Balance_Current_Year.id):
+        ctr += 1
+        row.append(TR(
+            TD(ctr),
+            TD(n.financial_year.year),
+            TD(n.account_code),
+            TD(n.account_name),
+            TD(locale.format('%.2F', n.total_opening_balance or 0, grouping = True),_align='right'),
+            TD(locale.format('%.2F', n.total_closing_balance or 0, grouping = True),_align='right')))
+    body = TBODY(*row)
+    table = TABLE(*[head, body], _class='table')
+    return dict(form = form, table = table)
+
+# 

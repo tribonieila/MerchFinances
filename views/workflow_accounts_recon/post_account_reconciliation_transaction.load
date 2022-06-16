@@ -1,0 +1,26 @@
+{{=table}}
+<script>
+    $(document).ready(function(){
+        $(".table").DataTable();
+        var $tblrows = $("#ARTtbl tbody tr");
+        $tblrows.each(function(index){
+            var $tblrow = $(this);
+            $tblrow.find(".marking").on("change",function(){
+                var _id = $tblrow.find("[name=_id]").val();
+                // var _debit = $tblrow.find("[name=debit]").val();
+                // var _rv_amount =  $("#Account_Reconciliation_Header_Request_rv_amount").val();
+                // var _total_reconciled_amount =  $("#Account_Reconciliation_Header_Request_total_reconciled_amount").val();
+                // var _rv_balanced_amount =  $("#Account_Reconciliation_Header_Request_rv_balanced_amount").val();
+                // if(!isNaN(_rv_balanced_amount)){
+                // }
+                // console.log(_id, _debit, _rv_amount,_total_reconciled_amount,_rv_balanced_amount)                             
+
+                if ($(this).is(':checked')) {
+                    ajax("{{=URL('workflow_accounts_recon','patch_receipt_voucher_transaction_id', args = [1, request.args(0)])}}" + '/' + _id);
+                } else {
+                    ajax("{{=URL('workflow_accounts_recon','patch_receipt_voucher_transaction_id', args = [2, request.args(0)])}}" + '/' + _id);
+                }                   
+            });
+        });
+    })
+</script>

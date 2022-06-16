@@ -1,0 +1,97 @@
+{{extend 'layout.html'}}
+
+<section class="content">
+    <div class="row">
+        
+        <div class="col-md-9">
+            {{=LOAD('workflow_rv_confirmation','post_receipt_voucher_confirmation_transaction.load', ajax = True, extension = False, target = 'AVTtbl')}}
+        </div>
+        <div class="col-md-3">
+            <div class="box box-danger">
+                <div class="box-header with-border">
+                    <h3 class="box-title">Receipt Voucher Confirmation Form</h3>
+                </div>
+                <div class="box-body">
+                    {{=form.custom.begin}}                   
+                    <input id="ticket_no_id" name="ticket_no_id" type="text" value="{{=ticket_no_id}}" hidden>
+                    <div class="form-group">
+                        <label>Financial Year {{=request.now.year}}</label>
+                        <!-- <input id="financial_year" name="financial_year" type="text" value="{{=request.now.year}}"> -->
+                    </div>          
+
+                    <div class="row">
+                        <div class="form-group">
+                            <div class="col-lg-6">                              
+                                <label>Voucher No</label>
+                                {{=form.custom.widget.voucher_no}}    
+                            </div>                  
+                            <div class="col-lg-6">      
+                                <label>Date</label>
+                                <input class="form-control" id="no_table_transaction_reference_date" name="transaction_reference_date" type="date" value="{{=request.now.date()}}">
+                            </div>                  
+                        </div>
+                    </div>
+                    </br>
+                    <div class="form-group">
+                        <label>RV Conf. Type</label>
+                        {{=form.custom.widget.receipt_voucher_confirmation_type_id}}    
+                    </div>          
+                    <div class="form-group">
+                        <label>Deposited To Bank Account Code</label>
+                        {{=form.custom.widget.bank_name_id}}
+                        <!-- <p class="help-block"><div id="bank_name"></div></p>    -->
+                    </div>          
+                    <div class="form-group">
+                        <label>Remarks</label>
+                        {{=form.custom.widget.remarks}}    
+                    </div>                                              
+                    <input class="btn btn-block btn-primary btn-flat" type="button" value="Submit" id="btnSubmit" onclick="SubmitFunc()">
+                    <input class="btn btn-block btn-danger btn-flat" type="button" value="Exit" id="btnExit" onclick="ExitFunc()">
+                    {{=form.custom.end}}                    
+                </div>
+            </div>
+        </div>
+    </div>
+</section>             
+
+<script>
+    $(document).ready(function(){
+        $("#btnSubmit").prop("disabled", true);
+        
+        if ($("#Account_Voucher_Request_account_payment_mode_id").val() == 1) {                    
+            $("#hide_field").hide();
+        } else {
+            $("#hide_field").show();
+        }
+        $("#no_table_voucher_no").prop('readonly', true);
+
+        $("#no_table_receipt_voucher_confirmation_type_id").change(function(){            
+            if ($("#no_table_receipt_voucher_confirmation_type_id").val() != "") {                
+                ajax("{{=URL('workflow_rv_confirmation','patch_receipt_voucher', args = 1)}}", ['receipt_voucher_confirmation_type_id']);
+            } else {
+                $('#no_table_voucher_no').val('0');                
+            }            
+        });
+
+        $("#no_table_receipt_voucher_confirmation_type_id, #no_table_bank_name_id").change(function(){
+            if ($("#no_table_receipt_voucher_confirmation_type_id").val() != ""  && $("#no_table_bank_name_id").val() != "") {
+                $("#btnSubmit").prop("disabled", false);
+            } else {
+                $("#btnSubmit").prop("disabled", true);                              
+            }
+        });
+    })
+
+    function SubmitFunc(){
+        alertify.confirm('Receipt Voucher Confirmation', 'Submit Receipt Voucher?', function(){      
+            ajax("{{=URL('workflow_rv_confirmation','patch_receipt_voucher', args = 3)}}",['transaction_reference_date','receipt_voucher_confirmation_type_id','bank_name_id','remarks']);            
+        }
+            , function(){ alertify.error('Cancel')});
+    }
+
+    function ExitFunc(){
+        alertify.confirm("Receipt Voucher Confirmation","Are you sure you want to exit and abort this transaction?", function() { 
+            ajax("{{=URL('workflow_rv_confirmation','patch_receipt_voucher', args = 4)}}");
+        }, function () { alertify.error("Cancel")});        
+    }
+</script>

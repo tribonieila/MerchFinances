@@ -1,0 +1,189 @@
+{{extend 'layout.html'}}
+
+<section class="content">
+    <div class="row">
+        
+        <div class="col-md-9">
+            
+            {{=LOAD('workflow_receipt_voucher','post_receipt_voucher_transaction.load', args = request.args(0), ajax = True, extension = False, target = 'AVTtbl')}}
+        </div>
+        <div class="col-md-3">
+            <div class="box box-danger">
+                <div class="box-header with-border">
+                    <h3 class="box-title">Receipt Voucher Form</h3>
+                </div>
+                <div class="box-body">
+                    {{=form.custom.begin}}                   
+                    <input id="ticket_no_id" name="ticket_no_id" type="text" value="{{=ticket_no_id}}" hidden>
+                    <div class="form-group">
+                        <label>Financial Year {{=request.now.year}}</label>
+                    </div>          
+
+                    <div class="row">
+                        <div class="form-group">
+                            <div class="col-lg-6">                              
+                                <label>Voucher No</label>
+                                {{=form.custom.widget.voucher_no}}    
+                            </div>                  
+                            <div class="col-lg-6">      
+                                <label>Date</label>
+                                {{if request.args(0):}}
+                                    <input class="form-control" id="Account_Voucher_Request_transaction_reference_date" name="transaction_reference_date" type="date" value="{{=_id.transaction_reference_date}}">
+                                {{else:}}
+                                    <input class="form-control" id="Account_Voucher_Request_transaction_reference_date" name="transaction_reference_date" type="date" value="{{=request.now.date()}}">
+                                {{pass}}
+                            </div>                  
+                        </div>
+                    </div>
+                    </br>
+                    <div class="form-group">
+                        <label>Account Payment Mode</label>
+                        {{=form.custom.widget.account_payment_mode_id}}    
+                    </div>         
+                    <div class="row">
+                        <div class="form-group">
+                            <div class="col-lg-5">
+                                <label>Account Code</label>
+                                {{=form.custom.widget.account_code}}        
+                            </div>
+                            <div class="col-lg-7">
+                                <label>Account Name</label>
+                                <input class="form-control" id="account_name" name="account_name" type="text">
+                            </div>
+                        </div>                             
+                    </div> 
+                    </br>
+                    <div class="form-group">
+                        <label>Received From</label>
+                        {{=form.custom.widget.received_from}}    
+                    </div>      
+                    <div class="form-group">
+                        <label>Collected By</label>
+                        {{=form.custom.widget.collected_by}}    
+                    </div>      
+
+                    <div id="hide_field">
+                        <div class="form-group">
+                            <label>Bank Name</label>
+                            {{=form.custom.widget.bank_name_id}}    
+                        </div>                         
+                        <div class="form-group">
+                            <label>Cheque No</label>
+                            {{=form.custom.widget.cheque_no}}    
+                        </div>                         
+                        <div class="form-group">
+                            <label>Cheque Dated</label>
+                            {{if request.args(0):}}
+                                <input class="form-control" id="Account_Voucher_Request_cheque_dated" name="cheque_dated" type="date" value="{{=_id.cheque_dated}}">
+                            {{else:}}
+                                <input class="form-control" id="Account_Voucher_Request_cheque_dated" name="cheque_dated" type="date" value="{{=request.now.date()}}">
+                            {{pass}}
+                        </div>                         
+                    </div>
+                    <div class="form-group">
+                        <label>Manual RV #</label>
+                        {{=form.custom.widget.manual_rv_no}}    
+                    </div>                                              
+                    <div class="form-group">
+                        <label>Status</label>
+                        {{=form.custom.widget.status_id}}    
+                    </div>      
+                    <div class="form-group">
+                        <label>Remarks</label>
+                        {{=form.custom.widget.remarks}}    
+                    </div>                                              
+                    
+                    {{if request.args(0):}}
+                        <input class="btn btn-block btn-primary btn-flat" type="submit" value="Save & Submit" id="btnSubmit">
+                        <input class="btn btn-block btn-success btn-flat" type="button" value="Approved" id="btnExit" onclick="ApprovedFunc()">                        
+                    {{else:}}
+                        <input class="btn btn-block btn-primary btn-flat" type="submit" value="Submit" id="btnSubmit">
+                    {{pass }}
+                    <input class="btn btn-block btn-danger btn-flat" type="button" value="Exit" id="btnExit" onclick="ExitFunc()">
+                    {{=form.custom.end}}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>             
+
+<script>
+    $(document).ready(function(){
+        $('#btnSubmit').attr('disabled','disabled');
+        
+        if ($("#Receipt_Voucher_Request_account_payment_mode_id").val() == 1) {                    
+            $("#hide_field").hide();
+        } else {
+            $("#hide_field").show();
+        }
+        $("#Receipt_Voucher_Request_voucher_no").prop('readonly', true);
+        $("#Receipt_Voucher_Request_account_code").prop('readonly', true);
+        $("#account_name").prop('readonly', true);
+        $("#Receipt_Voucher_Request_account_payment_mode_id").change(function(){
+            if ($("#Receipt_Voucher_Request_account_payment_mode_id").val() != "") {
+                if ($("#Receipt_Voucher_Request_account_payment_mode_id").val() == 1) {                    
+                    $("#hide_field").slideUp('slow');                    
+                    $("#Receipt_Voucher_Request_bank_name_id").prop('readonly', true);
+                    $("#Receipt_Voucher_Request_cheque_no").prop('readonly', true);
+                    $("#Receipt_Voucher_Request_cheque_dated").prop('readonly', true);                    
+                } else {
+                    $("#hide_field").slideDown('slow');
+                    $("#Receipt_Voucher_Request_bank_name_id").prop('readonly', false);
+                    $("#Receipt_Voucher_Request_cheque_no").prop('readonly', false);
+                    $("#Receipt_Voucher_Request_cheque_dated").prop('readonly', false);                    
+                }
+                ajax("{{=URL('workflow_receipt_voucher','patch_receipt_voucher', args = 1)}}", ['account_payment_mode_id'])
+            } else {
+                $("#Receipt_Voucher_Request_account_code").val("");
+            }            
+        });
+
+        $("#Receipt_Voucher_Request_account_payment_mode_id, #Receipt_Voucher_Request_status_id").change(function(){
+            if ($("#Receipt_Voucher_Request_account_payment_mode_id").val() != ""  && $("#Receipt_Voucher_Request_status_id").val() != "") {
+                if ($("#Receipt_Voucher_Request_account_payment_mode_id").val() == 1) {
+                    $('#btnSubmit').removeAttr('disabled');
+                    $("#Receipt_Voucher_Request_bank_name_id, #Receipt_Voucher_Request_cheque_no").val("");
+                } else if (($("#Receipt_Voucher_Request_account_payment_mode_id").val() == 2) || $("#Receipt_Voucher_Request_account_payment_mode_id").val() == 3) {      
+                    $("#Receipt_Voucher_Request_bank_name_id, #Receipt_Voucher_Request_cheque_no").change(function(){
+                        if ($("#Receipt_Voucher_Request_bank_name_id").val() != "" && $("#Receipt_Voucher_Request_cheque_no").val() != "" && $("#Account_Voucher_Request_cheque_dated").val() != "") {
+                            $('#btnSubmit').removeAttr('disabled');
+                        } 
+                    })          
+                } else {
+                    $('#btnSubmit').attr('disabled','disabled');   
+                }                
+            } else {
+                $('#btnSubmit').attr('disabled','disabled');   
+            }
+        });
+
+    })
+    {{if request.args(0):}}
+        if ($("#Receipt_Voucher_Request_account_payment_mode_id").val() == 3) {
+            $("#account_name").val("BILLS RECIEVABLE (PDC)");
+        } else {
+            $("#account_name").val("CASH-IN-HAND");
+        }
+    {{pass}}
+
+    function ApprovedFunc(){
+        alertify.confirm('Receipt Voucher', 'Approved Receipt Voucher?', 
+            function(){
+                ajax("{{=URL('workflow_receipt_voucher','patch_receipt_voucher_approval_id', args = [2, request.args(0)])}}")
+            }
+            , function(){ alertify.error('Cancel')});
+    }
+    function RejectFunc(){
+        alertify.confirm('Receipt Voucher', 'Reject Receipt Voucher?', 
+            function(){ 
+                ajax("{{=URL('workflow_receipt_voucher','patch_receipt_voucher_approval_id', args = [1, request.args(0)])}}")
+             }
+            , function(){ alertify.error('Cancel')});
+    }
+
+    function ExitFunc(){
+        window.location.replace('{{=URL('workflow_receipt_voucher','get_receipt_voucher_grid')}}'); 
+    }
+</script>
+
+

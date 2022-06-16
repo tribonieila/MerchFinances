@@ -1,0 +1,146 @@
+<div class="box">
+    <div class="box-header with-border">
+        <h3 class="box-title">Payment Voucher Grid</h3>
+    </div>
+    <div class="box-body table-responsive">                
+        {{=table}}        
+    </div>
+</div>
+
+<div id="item_description"></div>
+
+<div class="box" id="trnx_input">
+    <div class="box-header with-border">
+        <h3 class="box-title">Payment Voucher Form</h3>
+    </div>
+    {{=form.custom.begin}}
+    <div class="box-body">                
+        <div class="row">
+            <div class="form-group">
+                <div class="col-lg-2">                              
+                    <label>Account Debit Code</label>                    
+                    {{=form.custom.widget.account_debit_code}}    
+                    <input id="gl_id" name="gl_id" type="text" value="0" hidden>
+                </div>                  
+                <div class="col-lg-3">      
+                    <label>Payment Type</label>
+                    <div class="input-group">
+                            {{=form.custom.widget.transaction_payment_type_id}}    
+                            <span class="input-group-btn">
+                                <button type="button" id="BtnGenLed" class="btn btn-info btn-flat" onclick="FuncGenLed()"><i class="fas fa-info-circle"></i></button>                                
+                            </span>
+                      </div>                    
+                </div>                  
+                <div class="col-lg-2">      
+                    <label>Department</label>
+                    {{=form.custom.widget.dept_code_id}}    
+                </div>                                  
+                <div class="col-lg-3">      
+                    <label>Description</label>
+                    {{=form.custom.widget.description}}    
+                </div>                  
+                <div class="col-lg-2">      
+                    <label>Amount</label>
+                    {{=form.custom.widget.amount}}    
+                </div>                  
+            </div>
+        </div>
+        <br>
+        <div class="row">
+            <div class="col-lg-2"></div>
+            <div class="form-group">
+                <div class="col-lg-5">      
+                    <label>Cost Center Category</label>
+                    {{=form.custom.widget.cost_center_category_id}}    
+                </div>                  
+                <div class="col-lg-5">      
+                    <label>Cost Center</label>
+                    {{=form.custom.widget.cost_center_id}}    
+                </div>                  
+
+            </div>
+        </div>
+    </div>    
+    <div class="box-footer">
+        <div class="row">
+            <div class="col-lg-12"> 
+                <input class="btn btn-block btn-primary btn-flat" type="submit" value=" + ADD" id="btnadd">
+            </div>
+        </div>
+    </div>
+    {{=form.custom.end}}
+</div>
+
+
+<script src="{{=URL('static','js/jscascade.js')}}"></script>
+<script type="text/javascript">
+	jQuery(document).ready(function($){
+		var data = [
+			{ text: 'Choose Department', value: null},
+			{{for d in db().select(db.General_Department_Cost_Center.ALL):}}
+			{ text: "{{=d.department_code}} - {{=d.department_name}}", value: "{{=d.id}}",
+				children: [ { text: 'Choose Cost Category', value:  null}, {{for n in db().select(orderby = db.Cost_Center_Category.cost_center_category_name):}}
+					
+					{ text: "{{=n.cost_center_category_name}}, {{=n.cost_center_category_code}} ", value: "{{=n.id}}", 
+					
+					children: [ { text: 'Choose Cost Center', value: null}, {{for c in db((db.Cost_Center.dept_code_id == d.id) & (db.Cost_Center.cost_center_category_group_id == n.cost_center_category_group_id) & (db.Cost_Center.cost_center_exemption == False) & (db.Cost_Center.status_id == 1)).select(orderby = db.Cost_Center.cost_center_name):}}
+						{ text: '{{=c.cost_center_name}}, {{=c.cost_center_code}}', value: '{{=c.id}}'}, {{pass}}
+					],
+					}, {{pass}}
+				],
+			}, {{pass}}
+		];
+		$("#Payment_Voucher_Transaction_Request_dept_code_id").cascadingSelect({
+			subSelects: ["#Payment_Voucher_Transaction_Request_cost_center_category_id","#Payment_Voucher_Transaction_Request_cost_center_id"],
+            data: data
+		});
+	});
+</script> 
+
+<script>
+    $(document).ready(function(){        
+
+        $('input[type=text]').attr('autocomplete','off');
+        $('input[type=number]').attr('autocomplete','off');
+        $('#Payment_Voucher_Transaction_Request_transaction_payment_type_id option[value="2"]').attr("disabled","disabled");
+        $("#BtnGenLed").prop("disabled", true);
+
+        $("#Payment_Voucher_Transaction_Request_account_debit_code").change(function(){
+            $("#item_description").slideDown("slow");
+            ajax("{{=URL('workflow_payment_voucher','get_item_description')}}", ['account_debit_code'], 'item_description');
+            
+        });
+
+        $("#Payment_Voucher_Transaction_Request_account_debit_code,#Payment_Voucher_Transaction_Request_transaction_payment_type_id").change(function(){
+            if ($("#Payment_Voucher_Transaction_Request_account_debit_code").val() && ($("#Payment_Voucher_Transaction_Request_transaction_payment_type_id").val() ==2)) {
+                $("#BtnGenLed").prop("disabled", false);
+            } else if ($("#Payment_Voucher_Transaction_Request_transaction_payment_type_id").val() == 1) {
+                $("#BtnGenLed").prop("disabled", true);
+            }
+        });
+
+        $("#Receipt_Voucher_Transaction_Request_account_credit_code, #Receipt_Voucher_Transaction_Request_transaction_payment_type_id").change(function(){
+            if ($("#Receipt_Voucher_Transaction_Request_account_credit_code").val() && ($("#Receipt_Voucher_Transaction_Request_transaction_payment_type_id").val() == 2)) {
+                $("#BtnGenLed").prop("disabled", false);
+                $("#Receipt_Voucher_Transaction_Request_description").val("");
+            } else if ($("#Receipt_Voucher_Transaction_Request_transaction_payment_type_id").val() == 1) {
+                $("#BtnGenLed").prop("disabled", true);
+                $("#Receipt_Voucher_Transaction_Request_dept_code_id").val(3);
+                $("#Receipt_Voucher_Transaction_Request_description").val("PAYMENT ON ACCOUNT");
+                $("#Receipt_Voucher_Transaction_Request_amount_paid").val("0");
+            } else {
+                $("#Receipt_Voucher_Transaction_Request_description").val("");
+                $("#Receipt_Voucher_Transaction_Request_amount_paid").val("");
+                
+            }
+            
+        });
+
+    });
+    function FuncGenLed(){
+        ajax("{{=URL('workflow_payment_voucher','patch_payment_voucher_id', args = 2)}}", ['account_debit_code','transaction_payment_type_id']);
+    }
+
+</script>
+
+

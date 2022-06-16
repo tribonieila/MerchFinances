@@ -181,7 +181,7 @@ dc.define_table('Master_Chart_Account_Prefix_Serial',
 dc.define_table('Master_Account', # standy by for accounts/finance module account code each location
     Field('account_sub_group_id','reference Master_Chart_Account_Prefix_Serial', ondelete = 'NO ACTION', requires = IS_EMPTY_OR(IS_IN_DB(dc, dc.Master_Chart_Account_Prefix_Serial.id,'%(prefix)s %(account_group_name)s - %(prefix_name)s', zero = 'Choose Account Sub-Group'))),     
     Field('chart_of_account_group_code','string', length = 10),
-    Field('account_code','string', length = 15),
+    Field('account_code','string', length = 15, requires = [IS_UPPER(),IS_NOT_EMPTY(),IS_NOT_IN_DB(dc,'Master_Account.account_code')]),
     Field('account_name','string'),    
     Field('master_account_type_id','string',length=25,requires = IS_IN_SET([('A', 'A - Accounts'), ('C', 'C - Customer'), ('E', 'E - Employee'),('S','S - Supplier'),('G','G - General Account'),('SAC','SAC - Stock Adjustment Code'),('OOS','OOS - Obselensce Of Stock')],zero='Choose Account Type')), #Customer,Accounts,Supplier,Employees    
     Field('credit_balance_1','decimal(20,6)',default=0),
@@ -219,7 +219,6 @@ dc.define_table('Customer_Group_Code',# assets, receivable, payables, journals
     Field('mnemonic', 'string', length = 10, requires = [IS_LENGTH(10), IS_UPPER()]),
     Field('description', 'string', length = 50, requires = [IS_LENGTH(50), IS_UPPER()]), 
     Field('status_id','string'))
-    # Field('status_id','reference Record_Status',ondelete = 'NO ACTION', label = 'Status', default = 1, requires = IS_IN_DB(db, db.Record_Status.id,'%(status)s', zero = 'Choose status')), 
 
 dc.define_table('Customer_Category', # hypermarket, restaurant
     Field('mnemonic', 'string', length = 10, requires = [IS_LENGTH(10), IS_UPPER()]),

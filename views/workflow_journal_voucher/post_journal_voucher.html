@@ -1,0 +1,184 @@
+{{extend 'layout.html'}}
+
+<section class="content">
+    <div class="row">                
+        <div class="col-md-9">
+            {{=LOAD('workflow_journal_voucher','post_journal_voucher_transaction.load', args = request.args(0), ajax = True, extension = False, target = 'JVTtbl')}}
+        </div>
+        <div class="col-md-3">
+            <div class="box box-danger">
+                <div class="box-header with-border">
+                    <h3 class="box-title">Journal Voucher Form</h3>
+                </div>
+                <div class="box-body">
+                    {{=form.custom.begin}}                   
+                    <input id="ticket_no_id" name="ticket_no_id" type="text" value="{{=ticket_no_id}}" hidden>
+                    <div class="form-group">
+                        <label>Financial Year {{=request.now.year}}</label>
+                    </div>          
+                    <div id="journal_voucher_id">
+                        <div class="row">
+                            <div class="form-group">
+                                <div class="col-lg-6">                              
+                                    <label>Journal Voucher No</label>
+                                    {{=form.custom.widget.journal_voucher_no}}
+                                </div>                  
+                                <div class="col-lg-6">      
+                                    <label>Date</label>
+                                    {{if request.args(0):}}
+                                        <input class="form-control" id="Account_Voucher_Request_payment_voucher_date" name="payment_voucher_date" type="date" value="{{=_id.journal_voucher_date}}">
+                                    {{else:}}
+                                        <input class="form-control" id="Account_Voucher_Request_payment_voucher_date" name="payment_voucher_date" type="date" value="{{=request.now.date()}}">
+                                    {{pass}}                                
+                                </div>                  
+                            </div>                    
+                        </div>
+                        <br/>
+                    </div>                    
+                    <div class="row">
+                        <div class="form-group">
+                            <div class="col-lg-6">                              
+                                <label>JV Req. No</label>
+                                {{=form.custom.widget.journal_voucher_request_no}}    
+                            </div>                  
+                            <div class="col-lg-6">      
+                                <label>Date</label>
+                                {{if request.args(0):}}
+                                    <input class="form-control" id="Account_Voucher_Request_transaction_reference_date" name="transaction_reference_date" type="date" value="{{=_id.transaction_reference_date}}">
+                                {{else:}}
+                                    <input class="form-control" id="Account_Voucher_Request_transaction_reference_date" name="transaction_reference_date" type="date" value="{{=request.now.date()}}">
+                                {{pass}}
+                            </div>                  
+                        </div>
+                    </div>
+                    </br>
+                    <div class="form-group">
+                        <label>Journal Voucher Type</label>
+                        {{=form.custom.widget.journal_voucher_type_id}}    
+                    </div>         
+                    <div class="form-group">
+                        <label>Status</label>
+                        {{=form.custom.widget.status_id}}    
+                    </div>      
+                    <div class="form-group">
+                        <label>Remarks</label>
+                        {{=form.custom.widget.remarks}}    
+                    </div>                                              
+                    {{if (auth.has_membership(role = 'ACCOUNTS')):}}
+                        {{if request.args(0):}}
+                            <input class="btn btn-block btn-primary btn-flat" type="submit" value="Save & Submit" id="btnSaveSubmit">
+                        {{else:}}
+                            <input class="btn btn-block btn-primary btn-flat" type="button" value="Submit" id="btnSubmit">
+                        {{pass }}
+                    {{elif (auth.has_membership(role = 'ACCOUNTS MANAGER') | auth.has_membership(role = 'ROOT')) & (_id.status_id == 16):}}
+                        <input class="btn btn-block btn-success btn-flat" type="button" value="Approved" onclick="Accounts_Manager_Function(1)">
+                        <input class="btn btn-block btn-warning btn-flat" type="button" value="Reject" onclick="Accounts_Manager_Function(2)">
+                    {{elif (auth.has_membership(role = 'ACCOUNTS MANAGER') | auth.has_membership(role = 'ROOT')) & (_id.status_id == 17):}}
+                        <input class="btn btn-block btn-success btn-flat" type="button" value="Approved" onclick="Audit_Manager_Function(1)">
+                        <input class="btn btn-block btn-warning btn-flat" type="button" value="Reject" onclick="Audit_Manager_Function(2)">
+
+                    {{elif (auth.has_membership(role = 'MANAGEMENT')) | (auth.has_membership(role = 'ROOT') & (_id.status_id == 13)):}}
+                        <input class="btn btn-block btn-success btn-flat" type="button" value="Approved" onclick="Management_Function(1)">
+                        <input class="btn btn-block btn-warning btn-flat" type="button" value="Reject" onclick="Management_Function(2)">
+
+                    {{pass}}                    
+                    <input class="btn btn-block btn-danger btn-flat" type="button" value="Exit" id="btnExit" onclick="ExitFunc()">
+                    {{=form.custom.end}}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>             
+
+<script>
+
+    $(document).ready(function(){
+        $('#btnSubmit').attr('disabled','disabled');
+        $("#journal_voucher_id").hide();
+        
+        {{if (request.args(0)) and (_id.journal_voucher_no):}}
+            $("#journal_voucher_id").show();
+            $("#Journal_Voucher_Header_Request_journal_voucher_no, #Account_Voucher_Request_payment_voucher_date, #Account_Voucher_Request_transaction_reference_date, #Journal_Voucher_Header_Request_remarks").prop('readonly', true);
+        {{pass}}
+
+        {{if (auth.has_membership(role = 'ACCOUNTS MANAGER')) | (auth.has_membership(role = 'MANAGEMENT')) | (auth.has_membership(role = 'ROOT')):}}
+            $('#Journal_Voucher_Header_Request_journal_voucher_type_id option:not(:selected)').attr('disabled',true);
+            $('#Journal_Voucher_Header_Request_status_id option:not(:selected)').attr('disabled',true);
+        {{pass}}
+        $("#btnSubmit").on('click', function(e){
+            e.preventDefault();
+            alertify.confirm("Save", "Do you want to proceed?", function(){
+                if (e) {
+                    $("#thisformid").submit();                    
+                    ajax("{{=URL('workflow_journal_voucher','patch_journal_voucher_id',args = 1)}}",['ticket_no_id','journal_voucher_request_no','transaction_reference_date','journal_voucher_type_id','status_id','remarks']);
+                    return true;
+                } else {
+                    alertify.error("cancel");
+                    return false;
+                }
+            }, function (){
+                alertify.error("Cancel!")
+            });
+        });
+
+        $("#Journal_Voucher_Header_Request_journal_voucher_request_no").prop('readonly', true);
+        $("#Payment_Voucher_Request_account_code").prop('readonly', true);
+        $("#account_name").prop('readonly', true);
+        $('#Payment_Voucher_Request_account_payment_mode_id option[value="1"]').attr("disabled", "disabled");
+        
+        // $("#Journal_Voucher_Header_Request_journal_voucher_type_id").change(function(){
+        //     if ($("#Journal_Voucher_Header_Request_journal_voucher_type_id").val() != "") {
+        //         ajax("{{=URL('workflow_journal_voucher','patch_journal_voucher_id', args = 1)}}");
+        //     } else {
+        //         $("#Journal_Voucher_Header_Request_journal_voucher_request_no").val('');
+        //     }
+        // });
+
+        $("#Journal_Voucher_Header_Request_journal_voucher_type_id, #Journal_Voucher_Header_Request_status_id").change(function(){
+            if (
+                $("#Journal_Voucher_Header_Request_journal_voucher_type_id").val() != "" &&
+                $("#Journal_Voucher_Header_Request_status_id").val() != ""
+            ) {
+                $('#btnSubmit').removeAttr('disabled');
+            } else {
+                $('#btnSubmit').attr('disabled','disabled');
+            }
+        });
+
+    })
+
+    function ApprovedFunc(){
+        alertify.confirm('Receipt Voucher', 'Approved Receipt Voucher?', 
+            function(){
+                ajax("{{=URL('workflow_receipt_voucher','patch_receipt_voucher_approval_id', args = [2, request.args(0)])}}")
+            }
+            , function(){ alertify.error('Cancel')});
+    }
+    function RejectFunc(){
+        alertify.confirm('Receipt Voucher', 'Reject Receipt Voucher?', 
+            function(){ 
+                ajax("{{=URL('workflow_receipt_voucher','patch_receipt_voucher_approval_id', args = [1, request.args(0)])}}")
+             }
+            , function(){ alertify.error('Cancel')});
+    }
+
+    function ExitFunc(){
+        window.location.replace('{{=URL('workflow_journal_voucher','get_journal_voucher_grid')}}'); 
+    }
+
+    function Accounts_Manager_Function(x)
+    {     
+        ajax("{{=URL('workflow_journal_voucher','patch_journal_voucher_id', args = [2, request.args(0)])}}" + '/' + x,['remarks']);        
+    }    
+    
+    function Audit_Manager_Function(x)
+    {     
+        ajax("{{=URL('workflow_journal_voucher','patch_journal_voucher_id', args = [3, request.args(0)])}}" + '/' + x,['remarks']);        
+    }    
+
+    function Management_Function(x)
+    {     
+        ajax("{{=URL('workflow_journal_voucher','patch_journal_voucher_id', args = [4, request.args(0)])}}" + '/' + x,['remarks']);        
+    }    
+
+</script>

@@ -1393,6 +1393,7 @@ def patch_obsolescence_id():    # audited
                 db.General_Ledger.insert(
                     voucher_no_id = _id.id, 
                     transaction_type_ref = str(_gl.order_no_text),
+                    reference_no = str(_gl.transaction_prefix_text)+str(_voucher_no_ref),
                     account_reference_no = _voucher_no_ref,
                     transaction_prefix_id = _ser.id,
                     transaction_no = _ser.serial_number,
@@ -1425,6 +1426,7 @@ def patch_obsolescence_id():    # audited
         db.General_Ledger.insert(
             voucher_no_id = _id.id,
             transaction_type_ref = str(_gl.order_no_text),
+            reference_no = str(_gl.transaction_prefix_text) + str(_voucher_no_ref),
             account_reference_no = _voucher_no_ref,
             transaction_prefix_id = _ser.id,
             transaction_no = _ser.serial_number,
@@ -1441,7 +1443,7 @@ def patch_obsolescence_id():    # audited
             debit = float(_id.total_amount_after_discount or 0) - float(_id.total_selective_tax or 0),
             description = str(_gl.common_text) +  ' ' +  str(_gl.transaction_prefix_text) + str(_voucher_no_ref),
             batch_posting_seq = _seq,
-            gl_entry_ref = str(_ser.prefix)+str(_ser.serial_number) + '/' + str(_row.serial_number))
+            gl_entry_ref = str(_ser.prefix)+str(_ser.serial_number) + '/' + str(_id.account) + '/' + str(_row.serial_number))
         _row.update_record()
         _id.update_record(gl_batch_posting = True, gl_batch_posting_date = request.now,gl_batch_posting_seq = _seq, gl_entry_ref = str(_ser.prefix)+str(_ser.serial_number)+ '/' +str(_row.serial_number)) 
 
@@ -1451,6 +1453,7 @@ def patch_obsolescence_id():    # audited
             db.General_Ledger.insert(
                 voucher_no_id = _id.id,
                 transaction_type_ref = str(_gl.order_no_text),
+                reference_no = str(_gl.transaction_prefix_text) + str(_voucher_no_ref),
                 account_reference_no = _voucher_no_ref,
                 transaction_prefix_id = _ser.id,
                 transaction_no = _ser.serial_number,
@@ -1467,7 +1470,7 @@ def patch_obsolescence_id():    # audited
                 debit = float(_id.total_selective_tax or 0), 
                 description = str(_gl.common_text) +  ' ' +  str(_gl.transaction_prefix_text) + str(_voucher_no_ref),
                 batch_posting_seq = _seq,
-                gl_entry_ref = str(_ser.prefix)+str(_ser.serial_number) + '/' + str(_row.serial_number))
+                gl_entry_ref = str(_ser.prefix)+str(_ser.serial_number) + '/'+  str(_id.account)  + '/'+ str(_row.serial_number))
             _row.update_record()
             _id.gl_entry_ref = str(_id.gl_entry_ref) + ' | ' + str(_ser.prefix)+str(_ser.serial_number) + '/' + str(_row.serial_number)
             _id.update_record() 
@@ -1478,6 +1481,7 @@ def patch_obsolescence_id():    # audited
             db.General_Ledger.insert(
                 voucher_no_id = _id.id,
                 transaction_type_ref = str(_gl.order_no_text),
+                reference_no = str(_gl.transaction_prefix_text) + str(_voucher_no_ref),
                 account_reference_no = _voucher_no_ref,
                 transaction_prefix_id = _ser.id,
                 transaction_no = _ser.serial_number,
@@ -1493,40 +1497,14 @@ def patch_obsolescence_id():    # audited
                 credit = float(_id.total_selective_tax or 0), 
                 debit = 0,
                 description = str(_gl.excise_tax_text) +  ' ' +  str(_gl.transaction_prefix_text) + str(_voucher_no_ref),
-                gl_entry_ref = str(_ser.prefix)+str(_ser.serial_number) + '/' + str(_row.serial_number))                                                          
+                gl_entry_ref = str(_ser.prefix)+str(_ser.serial_number) + '/' + str(_ga.selective_tax_receivable_account) + '/' + str(_row.serial_number))                                                          
             _row.update_record()
             _id.gl_entry_ref = str(_id.gl_entry_ref)+ ' | ' + str(_ser.prefix)+str(_ser.serial_number) + '/' + str(_row.serial_number)
-            _id.update_record() 
+            _id.update_record()             
             
-            
-        # # all entries from transactions posted in gen ledger update on mas account        
-        for x in db(db.General_Ledger.transaction_no == _ser.serial_number).select():
-            _ma = dc(dc.Master_Account.account_code == x.account_code).select().first()
-            if _ma:   
-                if int(x.department) == 1:
-                    _ma.credit_balance_1 += x.debit or 0 - x.credit or 0
-                    _ma.closing_balance += _ma.credit_balance_1 or 0 
-                elif int(x.department) == 2:
-                    _ma.credit_balance_2 += x.debit or 0 - x.credit or 0
-                    _ma.closing_balance += _ma.credit_balance_2 or 0 
-                elif int(x.department) == 3:                
-                    _ma.credit_balance_3 += x.debit or 0 - x.credit or 0
-                    _ma.closing_balance += _ma.credit_balance_3 or 0
-                elif int(x.department) == 4:
-                    _ma.credit_balance_4 += x.debit or 0 - x.credit or 0
-                    _ma.closing_balance += _ma.credit_balance_4 or 0 
-                elif int(x.department) == 5:
-                    _ma.credit_balance_5 += x.debit or 0 - x.credit or 0
-                    _ma.closing_balance += _ma.credit_balance_5 or 0 
-                elif int(x.department) == 6:
-                    _ma.credit_balance_6 += x.debit or 0 - x.credit or 0
-                    _ma.closing_balance += _ma.credit_balance_6 or 0 
-                elif int(x.department) == 9:
-                    _ma.credit_balance_9 += x.debit or 0 - x.credit or 0
-                    _ma.closing_balance += _ma.credit_balance_9 or 0 
-                _ma.update_record()
- 
         _ser.update_record()     
+        # >>------------ Master_Account_Balance_Current_Year <<---------------------
+        calculate_master_account(int(_ser.serial_number))             
         response.js = "$('#tblMSH').get(0).reload();alertify.success('Success!')"        
  
 def patch_adjustment_plus_id():    # audited 
@@ -1569,6 +1547,7 @@ def patch_adjustment_plus_id():    # audited
                 db.General_Ledger.insert(
                     voucher_no_id = _id.id, 
                     transaction_type_ref = str(_gl.order_no_text),
+                    reference_no = str(_gl.transaction_prefix_text) + str(_voucher_no_ref),
                     account_reference_no = _voucher_no_ref,
                     transaction_prefix_id = _ser.id,
                     transaction_no = _ser.serial_number,
@@ -1601,6 +1580,7 @@ def patch_adjustment_plus_id():    # audited
         db.General_Ledger.insert(
             voucher_no_id = _id.id,
             transaction_type_ref = str(_gl.order_no_text),
+            reference_no = str(_gl.transaction_prefix_text) + str(_voucher_no_ref),
             account_reference_no = _voucher_no_ref,
             transaction_prefix_id = _ser.id,
             transaction_no = _ser.serial_number,
@@ -1617,7 +1597,7 @@ def patch_adjustment_plus_id():    # audited
             debit = 0,
             description = str(_gl.common_text) +  ' ' +  str(_gl.transaction_prefix_text) + str(_voucher_no_ref),
             batch_posting_seq = _seq,
-            gl_entry_ref = str(_ser.prefix)+str(_ser.serial_number) + '/' + str(_row.serial_number))
+            gl_entry_ref = str(_ser.prefix)+str(_ser.serial_number) + '/' + str(_id.account) + '/' + str(_row.serial_number))
         _row.update_record()
         _id.update_record(gl_batch_posting = True, gl_batch_posting_date = request.now,gl_batch_posting_seq = _seq, gl_entry_ref = str(_ser.prefix)+str(_ser.serial_number)+ '/' +str(_row.serial_number)) 
 
@@ -1627,6 +1607,7 @@ def patch_adjustment_plus_id():    # audited
             db.General_Ledger.insert(
                 voucher_no_id = _id.id,
                 transaction_type_ref = str(_gl.order_no_text),
+                reference_no = str(_gl.transaction_prefix_text) + str(_voucher_no_ref),
                 account_reference_no = _voucher_no_ref,
                 transaction_prefix_id = _ser.id,
                 transaction_no = _ser.serial_number,
@@ -1643,7 +1624,7 @@ def patch_adjustment_plus_id():    # audited
                 debit = 0, 
                 description = str(_gl.common_text) +  ' ' +  str(_gl.transaction_prefix_text) + str(_voucher_no_ref),
                 batch_posting_seq = _seq,
-                gl_entry_ref = str(_ser.prefix)+str(_ser.serial_number) + '/' + str(_row.serial_number))
+                gl_entry_ref = str(_ser.prefix)+str(_ser.serial_number) + '/' + str(_id.account) + '/' + str(_row.serial_number))
             _row.update_record()
             _id.gl_entry_ref = str(_id.gl_entry_ref) + ' | ' + str(_ser.prefix)+str(_ser.serial_number) + '/' + str(_row.serial_number)
             _id.update_record() 
@@ -1654,6 +1635,7 @@ def patch_adjustment_plus_id():    # audited
             db.General_Ledger.insert(
                 voucher_no_id = _id.id,
                 transaction_type_ref = str(_gl.order_no_text),
+                reference_no = str(_gl.transaction_prefix_text) + str(_voucher_no_ref),
                 account_reference_no = _voucher_no_ref,
                 transaction_prefix_id = _ser.id,
                 transaction_no = _ser.serial_number,
@@ -1669,40 +1651,14 @@ def patch_adjustment_plus_id():    # audited
                 credit = 0, 
                 debit = float(_id.total_selective_tax or 0),
                 description = str(_gl.excise_tax_text) +  ' ' +  str(_gl.transaction_prefix_text) + str(_voucher_no_ref),
-                gl_entry_ref = str(_ser.prefix)+str(_ser.serial_number) + '/' + str(_row.serial_number))                                                          
+                gl_entry_ref = str(_ser.prefix)+str(_ser.serial_number) + '/' + str(_ga.selective_tax_receivable_account) + '/' + str(_row.serial_number))                                                          
             _row.update_record()
             _id.gl_entry_ref = str(_id.gl_entry_ref)+ ' | ' + str(_ser.prefix)+str(_ser.serial_number) + '/' + str(_row.serial_number)
             _id.update_record() 
-            
-            
-        # # all entries from transactions posted in gen ledger update on mas account        
-        for x in db(db.General_Ledger.transaction_no == _ser.serial_number).select():
-            _ma = dc(dc.Master_Account.account_code == x.account_code).select().first()
-            if _ma:   
-                if int(x.department) == 1:
-                    _ma.credit_balance_1 += x.debit or 0 - x.credit or 0
-                    _ma.closing_balance += _ma.credit_balance_1 or 0 
-                elif int(x.department) == 2:
-                    _ma.credit_balance_2 += x.debit or 0 - x.credit or 0
-                    _ma.closing_balance += _ma.credit_balance_2 or 0 
-                elif int(x.department) == 3:                
-                    _ma.credit_balance_3 += x.debit or 0 - x.credit or 0
-                    _ma.closing_balance += _ma.credit_balance_3 or 0
-                elif int(x.department) == 4:
-                    _ma.credit_balance_4 += x.debit or 0 - x.credit or 0
-                    _ma.closing_balance += _ma.credit_balance_4 or 0 
-                elif int(x.department) == 5:
-                    _ma.credit_balance_5 += x.debit or 0 - x.credit or 0
-                    _ma.closing_balance += _ma.credit_balance_5 or 0 
-                elif int(x.department) == 6:
-                    _ma.credit_balance_6 += x.debit or 0 - x.credit or 0
-                    _ma.closing_balance += _ma.credit_balance_6 or 0 
-                elif int(x.department) == 9:
-                    _ma.credit_balance_9 += x.debit or 0 - x.credit or 0
-                    _ma.closing_balance += _ma.credit_balance_9 or 0 
-                _ma.update_record()
- 
-        _ser.update_record()     
+                    
+        _ser.update_record()    
+        # >>------------ Master_Account_Balance_Current_Year <<---------------------
+        calculate_master_account(int(_ser.serial_number))              
         response.js = "$('#tblMSH').get(0).reload();alertify.success('Success!')"        
  
 def patch_adjustment_minus_id():    # audited 
@@ -1745,6 +1701,7 @@ def patch_adjustment_minus_id():    # audited
                 db.General_Ledger.insert(
                     voucher_no_id = _id.id, 
                     transaction_type_ref = str(_gl.order_no_text),
+                    reference_no = str(_gl.transaction_prefix_text) + str(_voucher_no_ref),
                     account_reference_no = _voucher_no_ref,
                     transaction_prefix_id = _ser.id,
                     transaction_no = _ser.serial_number,
@@ -1777,6 +1734,7 @@ def patch_adjustment_minus_id():    # audited
         db.General_Ledger.insert(
             voucher_no_id = _id.id,
             transaction_type_ref = str(_gl.order_no_text),
+            reference_no = str(_gl.transaction_prefix_text) + str(_voucher_no_ref),
             account_reference_no = _voucher_no_ref,
             transaction_prefix_id = _ser.id,
             transaction_no = _ser.serial_number,
@@ -1793,7 +1751,7 @@ def patch_adjustment_minus_id():    # audited
             debit = float(_id.total_amount_after_discount or 0) - float(_id.total_selective_tax or 0),
             description = str(_gl.common_text) +  ' ' +  str(_gl.transaction_prefix_text) + str(_voucher_no_ref),
             batch_posting_seq = _seq,
-            gl_entry_ref = str(_ser.prefix)+str(_ser.serial_number) + '/' + str(_row.serial_number))
+            gl_entry_ref = str(_ser.prefix)+str(_ser.serial_number) + '/' + str(_id.account) + '/' + str(_row.serial_number))
         _row.update_record()
         _id.update_record(gl_batch_posting = True, gl_batch_posting_date = request.now,gl_batch_posting_seq = _seq, gl_entry_ref = str(_ser.prefix)+str(_ser.serial_number)+ '/' +str(_row.serial_number)) 
 
@@ -1803,6 +1761,7 @@ def patch_adjustment_minus_id():    # audited
             db.General_Ledger.insert(
                 voucher_no_id = _id.id,
                 transaction_type_ref = str(_gl.order_no_text),
+                reference_no = str(_gl.transaction_prefix_text) + str(_voucher_no_ref),
                 account_reference_no = _voucher_no_ref,
                 transaction_prefix_id = _ser.id,
                 transaction_no = _ser.serial_number,
@@ -1819,7 +1778,7 @@ def patch_adjustment_minus_id():    # audited
                 debit = float(_id.total_selective_tax or 0), 
                 description = str(_gl.common_text) +  ' ' +  str(_gl.transaction_prefix_text) + str(_voucher_no_ref),
                 batch_posting_seq = _seq,
-                gl_entry_ref = str(_ser.prefix)+str(_ser.serial_number) + '/' + str(_row.serial_number))
+                gl_entry_ref = str(_ser.prefix)+str(_ser.serial_number) + '/' + str(_id.account) + '/' + str(_row.serial_number))
             _row.update_record()
             _id.gl_entry_ref = str(_id.gl_entry_ref) + ' | ' + str(_ser.prefix)+str(_ser.serial_number) + '/' + str(_row.serial_number)
             _id.update_record() 
@@ -1830,6 +1789,7 @@ def patch_adjustment_minus_id():    # audited
             db.General_Ledger.insert(
                 voucher_no_id = _id.id,
                 transaction_type_ref = str(_gl.order_no_text),
+                reference_no = str(_gl.transaction_prefix_text) + str(_voucher_no_ref),
                 account_reference_no = _voucher_no_ref,
                 transaction_prefix_id = _ser.id,
                 transaction_no = _ser.serial_number,
@@ -1845,40 +1805,14 @@ def patch_adjustment_minus_id():    # audited
                 credit = float(_id.total_selective_tax or 0), 
                 debit = 0,
                 description = str(_gl.excise_tax_text) +  ' ' +  str(_gl.transaction_prefix_text) + str(_voucher_no_ref),
-                gl_entry_ref = str(_ser.prefix)+str(_ser.serial_number) + '/' + str(_row.serial_number))
+                gl_entry_ref = str(_ser.prefix)+str(_ser.serial_number) + '/' + str(_ga.selective_tax_receivable_account) + '/' + str(_row.serial_number))
             _row.update_record()
             _id.gl_entry_ref = str(_id.gl_entry_ref)+ ' | ' + str(_ser.prefix)+str(_ser.serial_number) + '/' + str(_row.serial_number)
-            _id.update_record() 
-            
-            
-        # # all entries from transactions posted in gen ledger update on mas account        
-        for x in db(db.General_Ledger.transaction_no == _ser.serial_number).select():
-            _ma = dc(dc.Master_Account.account_code == x.account_code).select().first()
-            if _ma:   
-                if int(x.department) == 1:
-                    _ma.credit_balance_1 += x.debit or 0 - x.credit or 0
-                    _ma.closing_balance += _ma.credit_balance_1 or 0 
-                elif int(x.department) == 2:
-                    _ma.credit_balance_2 += x.debit or 0 - x.credit or 0
-                    _ma.closing_balance += _ma.credit_balance_2 or 0 
-                elif int(x.department) == 3:                
-                    _ma.credit_balance_3 += x.debit or 0 - x.credit or 0
-                    _ma.closing_balance += _ma.credit_balance_3 or 0
-                elif int(x.department) == 4:
-                    _ma.credit_balance_4 += x.debit or 0 - x.credit or 0
-                    _ma.closing_balance += _ma.credit_balance_4 or 0 
-                elif int(x.department) == 5:
-                    _ma.credit_balance_5 += x.debit or 0 - x.credit or 0
-                    _ma.closing_balance += _ma.credit_balance_5 or 0 
-                elif int(x.department) == 6:
-                    _ma.credit_balance_6 += x.debit or 0 - x.credit or 0
-                    _ma.closing_balance += _ma.credit_balance_6 or 0 
-                elif int(x.department) == 9:
-                    _ma.credit_balance_9 += x.debit or 0 - x.credit or 0
-                    _ma.closing_balance += _ma.credit_balance_9 or 0 
-                _ma.update_record()
+            _id.update_record()             
  
         _ser.update_record()     
+        # >>------------ Master_Account_Balance_Current_Year <<---------------------
+        calculate_master_account(int(_ser.serial_number))             
         response.js = "$('#tblMSH').get(0).reload();alertify.success('Success!')"        
  
 def patch_sales_return_id():    # audited
@@ -1911,14 +1845,15 @@ def patch_sales_return_id():    # audited
                 dc.Master_Account.insert(account_code = _id.account, account_name = str('UPDATE ACCOUNT NAME'), master_account_type_id = 'G')
 
             _credit = _debit = _credit1 = _credit2 = 0
-            if n.category_id == 'N':
+            if n.category_id == 'N' or n.category_id == 'D':
                 _credit = n.sale_cost_notax_pcs * n.quantity
                 _debit = 0
-
+            
             elif n.category_id == 'P':            
                 _credit1 = n.average_cost_pcs * n.quantity
                 _debit = 0
                 _credit2 = (n.selective_tax_price / n.uom) * n.quantity            
+            
             
             _voucher_no = db((db.General_Ledger.account_reference_no == n.voucher_no) & (db.General_Ledger.transaction_type == 4) & (db.General_Ledger.account_code == _sm.supplier_sales_account) & (db.General_Ledger.location == n.location) & (db.General_Ledger.department == n.dept_code)).select().first()              
             _voucher_no_ib = db((db.General_Ledger.account_reference_no == n.voucher_no) & (db.General_Ledger.transaction_type == 4) & (db.General_Ledger.account_code == _sm.supplier_ib_account) & (db.General_Ledger.location == n.location) & (db.General_Ledger.department == n.dept_code)).select().first()
@@ -1931,14 +1866,15 @@ def patch_sales_return_id():    # audited
                 _voucher_no_pur = db((db.General_Ledger.account_reference_no == n.voucher_no2) & (db.General_Ledger.transaction_type == 4) & (db.General_Ledger.account_code == _sm.supplier_purchase_account) & (db.General_Ledger.location == n.location) & (db.General_Ledger.department == n.dept_code)).select().first()
                 _voucher_no_ref = n.voucher_no2                                
 
-            if not _voucher_no: # not exist / gl entry for sales account with category n
-                # transaction sales return account credit entry            
-                if n.category_id == 'N':                                         
+            if not _voucher_no: # not exist / gl entry for supplier sales account with category n
+                # transaction sales return account credit entry for supplier sales account           
+                if n.category_id == 'N' or n.category_id == 'D':                                         
                     _row.serial_number += 1       
                     _voucher_no_serial = str(_ser.prefix)+str(_ser.serial_number) + '/' + str(_sm.supplier_sales_account) + '/' + str(_row.serial_number)
                     db.General_Ledger.insert(
                         voucher_no_id = _id.id, 
                         transaction_type_ref = str(_gl.transaction_prefix_text),
+                        reference_no = str(_gl.transaction_prefix_text) + str(_voucher_no_ref),
                         account_reference_no = _voucher_no_ref,
                         transaction_prefix_id = _ser.id,
                         transaction_no = _ser.serial_number,
@@ -1949,7 +1885,7 @@ def patch_sales_return_id():    # audited
                         entrydate = request.now,
                         type = n.transaction_type,
                         department = n.dept_code,
-                        account_code = _sm.supplier_sales_account,
+                        account_code = _sm.supplier_sales_account, # for supplier sales account
                         due_date = _id.transaction_date + datetime.timedelta(days=60),
                         credit = 0,
                         debit = _credit,
@@ -1971,6 +1907,7 @@ def patch_sales_return_id():    # audited
                     db.General_Ledger.insert(
                         voucher_no_id = _id.id, 
                         transaction_type_ref = str(_gl.transaction_prefix_text),
+                        reference_no = str(_gl.transaction_prefix_text) + str(_voucher_no_ref),
                         account_reference_no = _voucher_no_ref,
                         transaction_prefix_id = _ser.id,
                         transaction_no = _ser.serial_number,
@@ -2007,6 +1944,7 @@ def patch_sales_return_id():    # audited
                     db.General_Ledger.insert( # ib account entry at tax price
                         voucher_no_id = _id.id, 
                         transaction_type_ref = str(_gl.transaction_prefix_text),
+                        reference_no = str(_gl.transaction_prefix_text) + str(_voucher_no_ref),
                         account_reference_no = _voucher_no_ref,
                         transaction_prefix_id = _ser.id,
                         transaction_no = _ser.serial_number,
@@ -2030,6 +1968,7 @@ def patch_sales_return_id():    # audited
                     db.General_Ledger.insert(# ib account entry at average cost
                         voucher_no_id = _id.id, 
                         transaction_type_ref = str(_gl.transaction_prefix_text),
+                        reference_no = str(_gl.transaction_prefix_text) + str(_voucher_no_ref),
                         account_reference_no = _voucher_no_ref,
                         transaction_prefix_id = _ser.id,
                         transaction_no = _ser.serial_number,
@@ -2073,6 +2012,7 @@ def patch_sales_return_id():    # audited
                     db.General_Ledger.insert(
                         voucher_no_id = _id.id, 
                         transaction_type_ref = str(_gl.transaction_prefix_text),
+                        reference_no = str(_gl.transaction_prefix_text) + str(_voucher_no_ref),
                         account_reference_no = _voucher_no_ref,
                         transaction_prefix_id = _ser.id,
                         transaction_no = _ser.serial_number,
@@ -2105,6 +2045,7 @@ def patch_sales_return_id():    # audited
         db.General_Ledger.insert(
             voucher_no_id = _id.id,
             transaction_type_ref = str(_gl.transaction_prefix_text),
+            reference_no = str(_gl.transaction_prefix_text) + str(_voucher_no_ref),
             account_reference_no = _voucher_no_ref,
             transaction_prefix_id = _ser.id,
             transaction_no = _ser.serial_number,
@@ -2121,7 +2062,7 @@ def patch_sales_return_id():    # audited
             debit = 0,
             description = str(_gl.common_text) +  ' ' +  str(_gl.transaction_prefix_text) + str(_voucher_no_ref) + str(' CUSTOMER SRS REF. ') + str(_id.customer_return_reference),
             batch_posting_seq = _seq,
-            gl_entry_ref = str(_ser.prefix)+str(_ser.serial_number) + '/' + str(_row.serial_number))
+            gl_entry_ref = str(_ser.prefix)+str(_ser.serial_number) + '/' + str(_id.account) + '/' + str(_row.serial_number))
         _row.update_record()
         _id.update_record(gl_batch_posting = True, gl_batch_posting_date = request.now,gl_batch_posting_seq = _seq, gl_entry_ref = str(_ser.prefix)+str(_ser.serial_number)+ '/' +str(_row.serial_number)) 
         
@@ -2130,6 +2071,7 @@ def patch_sales_return_id():    # audited
             db.General_Ledger.insert(
                 voucher_no_id = _id.id,
                 transaction_type_ref = str(_gl.transaction_prefix_text),
+                reference_no = str(_gl.transaction_prefix_text) + str(_voucher_no_ref),
                 account_reference_no = _voucher_no_ref,
                 transaction_prefix_id = _ser.id,
                 transaction_no = _ser.serial_number,
@@ -2146,7 +2088,7 @@ def patch_sales_return_id():    # audited
                 debit = _id.delivery_charges or 0,
                 description = str(_gl.common_text2) +  ' ' +  str(_gl.transaction_prefix_text) + str(_voucher_no_ref),
                 batch_posting_seq = _seq,
-                gl_entry_ref = str(_ser.prefix)+str(_ser.serial_number) + '/' + str(_row.serial_number))
+                gl_entry_ref = str(_ser.prefix)+str(_ser.serial_number) + '/' + str(_ga.provision_delivery_income) + '/' + str(_row.serial_number))
             _row.update_record()
             _id.gl_entry_ref = str(_id.gl_entry_ref)+ ' | ' + str(_ser.prefix)+str(_ser.serial_number) + '/' + str(_row.serial_number)
             _id.update_record() 
@@ -2157,6 +2099,7 @@ def patch_sales_return_id():    # audited
             db.General_Ledger.insert(
                 voucher_no_id = _id.id,
                 transaction_type_ref = str(_gl.transaction_prefix_text),
+                reference_no = str(_gl.transaction_prefix_text) + str(_voucher_no_ref),
                 account_reference_no = _voucher_no_ref,
                 transaction_prefix_id = _ser.id,
                 transaction_no = _ser.serial_number,
@@ -2172,7 +2115,7 @@ def patch_sales_return_id():    # audited
                 credit = 0, 
                 debit = _id.total_selective_tax,
                 description = str(_gl.excise_tax_text) +  ' ' +  str(_gl.transaction_prefix_text) + str(_voucher_no_ref) + str(' CUSTOMER SRS REF. ') + str(_id.customer_return_reference),
-                gl_entry_ref = str(_ser.prefix)+str(_ser.serial_number) + '/' + str(_row.serial_number))                                                          
+                gl_entry_ref = str(_ser.prefix)+str(_ser.serial_number) + '/' + str(_ga.selective_tax_receivable_account) + '/' + str(_row.serial_number))                                                          
             _row.update_record()
             _id.gl_entry_ref = str(_id.gl_entry_ref)+ ' | ' + str(_ser.prefix)+str(_ser.serial_number) + '/' + str(_row.serial_number)
             _id.update_record() 
@@ -2184,6 +2127,7 @@ def patch_sales_return_id():    # audited
             db.General_Ledger.insert(
                 voucher_no_id = _id.id,
                 transaction_type_ref = str(_gl.transaction_prefix_text),
+                reference_no = str(_gl.transaction_prefix_text) + str(_voucher_no_ref),
                 account_reference_no = _voucher_no_ref,
                 transaction_prefix_id = _ser.id,
                 transaction_no = _ser.serial_number,
@@ -2199,39 +2143,14 @@ def patch_sales_return_id():    # audited
                 credit = 0, 
                 debit = _id.total_selective_tax_foc or 0,
                 description = 'FOC ' + str(_gl.excise_tax_text) + str(_gl.transaction_prefix_text) + str(_voucher_no_ref) + str(' CUSTOMER SRS REF. ') + str(_id.customer_return_reference),
-                gl_entry_ref = str(_ser.prefix)+str(_ser.serial_number) + '/' + str(_row.serial_number))                                                          
+                gl_entry_ref = str(_ser.prefix)+str(_ser.serial_number) + '/' + str(_ga.selective_tax_receivable_account) + '/' + str(_row.serial_number))                                                          
             _row.update_record()
             _id.gl_entry_ref = str(_id.gl_entry_ref)+ ' | ' + str(_ser.prefix)+str(_ser.serial_number) + '/' + str(_row.serial_number)
             _id.update_record() 
             
-        # # all entries from transactions posted in gen ledger update on mas account        
-        for x in db(db.General_Ledger.transaction_no == _ser.serial_number).select():
-            _ma = dc(dc.Master_Account.account_code == x.account_code).select().first()
-            if _ma:   
-                if int(x.department) == 1:
-                    _ma.credit_balance_1 += x.debit or 0 - x.credit or 0
-                    _ma.closing_balance += _ma.credit_balance_1 or 0 
-                elif int(x.department) == 2:
-                    _ma.credit_balance_2 += x.debit or 0 - x.credit or 0
-                    _ma.closing_balance += _ma.credit_balance_2 or 0 
-                elif int(x.department) == 3:                
-                    _ma.credit_balance_3 += x.debit or 0 - x.credit or 0
-                    _ma.closing_balance += _ma.credit_balance_3 or 0
-                elif int(x.department) == 4:
-                    _ma.credit_balance_4 += x.debit or 0 - x.credit or 0
-                    _ma.closing_balance += _ma.credit_balance_4 or 0 
-                elif int(x.department) == 5:
-                    _ma.credit_balance_5 += x.debit or 0 - x.credit or 0
-                    _ma.closing_balance += _ma.credit_balance_5 or 0 
-                elif int(x.department) == 6:
-                    _ma.credit_balance_6 += x.debit or 0 - x.credit or 0
-                    _ma.closing_balance += _ma.credit_balance_6 or 0 
-                elif int(x.department) == 9:
-                    _ma.credit_balance_9 += x.debit or 0 - x.credit or 0
-                    _ma.closing_balance += _ma.credit_balance_9 or 0 
-                _ma.update_record()
- 
         _ser.update_record()     
+        # >>------------ Master_Account_Balance_Current_Year <<---------------------
+        calculate_master_account(int(_ser.serial_number))               
         response.js = "$('#tblMSH').get(0).reload();alertify.success('Success!')"        
   
 def patch_cash_sales_id():    # audited
@@ -2292,6 +2211,7 @@ def patch_cash_sales_id():    # audited
                     db.General_Ledger.insert(
                         voucher_no_id = _id.id, 
                         transaction_type_ref = str(_gl.transaction_prefix_text),
+                        reference_no = str(_gl.transaction_prefix_text) + str(_voucher_no_ref),
                         account_reference_no = _voucher_no_ref,
                         transaction_prefix_id = _ser.id,
                         transaction_no = _ser.serial_number,
@@ -2324,6 +2244,7 @@ def patch_cash_sales_id():    # audited
                     db.General_Ledger.insert(
                         voucher_no_id = _id.id, 
                         transaction_type_ref = str(_gl.transaction_prefix_text),
+                        reference_no = str(_gl.transaction_prefix_text) + str(_voucher_no_ref),
                         account_reference_no = _voucher_no_ref,
                         transaction_prefix_id = _ser.id,
                         transaction_no = _ser.serial_number,
@@ -2360,6 +2281,7 @@ def patch_cash_sales_id():    # audited
                     db.General_Ledger.insert( # ib account entry at tax price
                         voucher_no_id = _id.id, 
                         transaction_type_ref = str(_gl.transaction_prefix_text),
+                        reference_no = str(_gl.transaction_prefix_text) + str(_voucher_no_ref),
                         account_reference_no = _voucher_no_ref,
                         transaction_prefix_id = _ser.id,
                         transaction_no = _ser.serial_number,
@@ -2383,6 +2305,7 @@ def patch_cash_sales_id():    # audited
                     db.General_Ledger.insert(# ib account entry at average cost
                         voucher_no_id = _id.id, 
                         transaction_type_ref = str(_gl.transaction_prefix_text),
+                        reference_no = str(_gl.transaction_prefix_text) + str(_voucher_no_ref),
                         account_reference_no = _voucher_no_ref,
                         transaction_prefix_id = _ser.id,
                         transaction_no = _ser.serial_number,
@@ -2426,6 +2349,7 @@ def patch_cash_sales_id():    # audited
                     db.General_Ledger.insert(
                         voucher_no_id = _id.id, 
                         transaction_type_ref = str(_gl.transaction_prefix_text),
+                        reference_no = str(_gl.transaction_prefix_text) + str(_voucher_no_ref),
                         account_reference_no = _voucher_no_ref,
                         transaction_prefix_id = _ser.id,
                         transaction_no = _ser.serial_number,
@@ -2458,6 +2382,7 @@ def patch_cash_sales_id():    # audited
         db.General_Ledger.insert(
             voucher_no_id = _id.id,
             transaction_type_ref = str(_gl.transaction_prefix_text),
+            reference_no = str(_gl.transaction_prefix_text) + str(_voucher_no_ref),
             account_reference_no = _voucher_no_ref,
             transaction_prefix_id = _ser.id,
             transaction_no = _ser.serial_number,
@@ -2474,7 +2399,7 @@ def patch_cash_sales_id():    # audited
             debit = float(_id.total_amount_after_discount or 0) + float(_id.delivery_charges or 0),
             description = str(_gl.common_text) +  ' ' +  str(_gl.transaction_prefix_text) + str(_voucher_no_ref),
             batch_posting_seq = _seq,
-            gl_entry_ref = str(_ser.prefix)+str(_ser.serial_number) + '/' + str(_row.serial_number))
+            gl_entry_ref = str(_ser.prefix)+str(_ser.serial_number) + '/' + str(_id.account) + '/' + str(_row.serial_number))
         _row.update_record()
         _id.update_record(gl_batch_posting = True, gl_batch_posting_date = request.now,gl_batch_posting_seq = _seq, gl_entry_ref = str(_ser.prefix)+str(_ser.serial_number)+ '/' +str(_row.serial_number)) 
         
@@ -2483,6 +2408,7 @@ def patch_cash_sales_id():    # audited
             db.General_Ledger.insert(
                 voucher_no_id = _id.id,
                 transaction_type_ref = str(_gl.transaction_prefix_text),
+                reference_no = str(_gl.transaction_prefix_text) + str(_voucher_no_ref),
                 account_reference_no = _voucher_no_ref,
                 transaction_prefix_id = _ser.id,
                 transaction_no = _ser.serial_number,
@@ -2499,7 +2425,7 @@ def patch_cash_sales_id():    # audited
                 debit = 0,
                 description = str(_gl.common_text2) +  ' ' +  str(_gl.transaction_prefix_text) + str(_voucher_no_ref),
                 batch_posting_seq = _seq,
-                gl_entry_ref = str(_ser.prefix)+str(_ser.serial_number) + '/' + str(_row.serial_number))
+                gl_entry_ref = str(_ser.prefix)+str(_ser.serial_number) + '/' + str(_ga.provision_delivery_income) + '/' + str(_row.serial_number))
             _row.update_record()
             # _id.gl_entry_ref = str(_id.gl_entry_ref)+ ' | ' + str(_row.serial_number)
             _id.gl_entry_ref = str(_id.gl_entry_ref) + ' | ' +  str(_ser.prefix)+str(_ser.serial_number) + '/' + str(_row.serial_number)
@@ -2511,6 +2437,7 @@ def patch_cash_sales_id():    # audited
             db.General_Ledger.insert(
                 voucher_no_id = _id.id,
                 transaction_type_ref = str(_gl.transaction_prefix_text),
+                reference_no = str(_gl.transaction_prefix_text) + str(_voucher_no_ref),
                 account_reference_no = _voucher_no_ref,
                 transaction_prefix_id = _ser.id,
                 transaction_no = _ser.serial_number,
@@ -2526,7 +2453,7 @@ def patch_cash_sales_id():    # audited
                 credit = _id.total_selective_tax, 
                 debit = 0,
                 description = str(_gl.excise_tax_text) +  ' ' +  str(_gl.transaction_prefix_text) + str(_voucher_no_ref),
-                gl_entry_ref = str(_ser.prefix)+str(_ser.serial_number) + '/' + str(_row.serial_number))
+                gl_entry_ref = str(_ser.prefix)+str(_ser.serial_number) + '/' + str(_ga.selective_tax_receivable_account) + '/' + str(_row.serial_number))
             _row.update_record()
             # _id.gl_entry_ref = str(_id.gl_entry_ref)+ '/' + str(_row.serial_number)
             _id.gl_entry_ref = str(_id.gl_entry_ref) + ' | ' +  str(_ser.prefix)+str(_ser.serial_number) + '/' + str(_row.serial_number)
@@ -2539,6 +2466,7 @@ def patch_cash_sales_id():    # audited
             db.General_Ledger.insert(
                 voucher_no_id = _id.id,
                 transaction_type_ref = str(_gl.transaction_prefix_text),
+                reference_no = str(_gl.transaction_prefix_text) + str(_voucher_no_ref),
                 account_reference_no = _voucher_no_ref,
                 transaction_prefix_id = _ser.id,
                 transaction_no = _ser.serial_number,
@@ -2554,44 +2482,20 @@ def patch_cash_sales_id():    # audited
                 credit = _id.total_selective_tax_foc, 
                 debit = 0,
                 description = 'FOC ' + str(_gl.excise_tax_text) + str(_gl.transaction_prefix_text) + str(_voucher_no_ref),
-                gl_entry_ref = str(_ser.prefix)+str(_ser.serial_number) + '/' + str(_row.serial_number))                                                          
+                gl_entry_ref = str(_ser.prefix)+str(_ser.serial_number)  + '/' + str(_ga.selective_tax_receivable_account) + '/' + str(_row.serial_number))                                                          
             _row.update_record()
             # _id.gl_entry_ref = str(_id.gl_entry_ref)+ '/' + str(_row.serial_number)
             _id.gl_entry_ref = str(_id.gl_entry_ref) + ' | ' +  str(_ser.prefix)+str(_ser.serial_number) + '/' + str(_row.serial_number)
             _id.update_record() 
             
-        # # all entries from transactions posted in gen ledger update on mas account        
-        for x in db(db.General_Ledger.transaction_no == _ser.serial_number).select():
-            _ma = dc(dc.Master_Account.account_code == x.account_code).select().first()
-            if _ma:   
-                if int(x.department) == 1:
-                    _ma.credit_balance_1 += x.debit or 0 - x.credit or 0
-                    _ma.closing_balance += _ma.credit_balance_1 or 0 
-                elif int(x.department) == 2:
-                    _ma.credit_balance_2 += x.debit or 0 - x.credit or 0
-                    _ma.closing_balance += _ma.credit_balance_2 or 0 
-                elif int(x.department) == 3:                
-                    _ma.credit_balance_3 += x.debit or 0 - x.credit or 0
-                    _ma.closing_balance += _ma.credit_balance_3 or 0
-                elif int(x.department) == 4:
-                    _ma.credit_balance_4 += x.debit or 0 - x.credit or 0
-                    _ma.closing_balance += _ma.credit_balance_4 or 0 
-                elif int(x.department) == 5:
-                    _ma.credit_balance_5 += x.debit or 0 - x.credit or 0
-                    _ma.closing_balance += _ma.credit_balance_5 or 0 
-                elif int(x.department) == 6:
-                    _ma.credit_balance_6 += x.debit or 0 - x.credit or 0
-                    _ma.closing_balance += _ma.credit_balance_6 or 0 
-                elif int(x.department) == 9:
-                    _ma.credit_balance_9 += x.debit or 0 - x.credit or 0
-                    _ma.closing_balance += _ma.credit_balance_9 or 0 
-                _ma.update_record()
- 
         _ser.update_record()     
+        # >>------------ Master_Account_Balance_Current_Year <<---------------------
+        calculate_master_account(int(_ser.serial_number))            
         response.js = "$('#tblMSH').get(0).reload();alertify.success('Success!')"        
  
 def patch_sales_invoice_id(): # audited
     import datetime
+    _voucher_no_ref = 'None'
     _seq = put_batch_posting_sequence_id()
     _ctr = db(db.General_Ledger.id).count()
     _ser = db(db.GL_Transaction_Serial.id == 1).select().first()
@@ -2648,6 +2552,7 @@ def patch_sales_invoice_id(): # audited
                     db.General_Ledger.insert(
                         voucher_no_id = _id.id, 
                         transaction_type_ref = str(_gl.transaction_prefix_text),
+                        reference_no = str(_gl.transaction_prefix_text) + str(_voucher_no_ref),
                         account_reference_no = _voucher_no_ref,
                         transaction_prefix_id = _ser.id,
                         transaction_no = _ser.serial_number,
@@ -2680,6 +2585,7 @@ def patch_sales_invoice_id(): # audited
                     db.General_Ledger.insert(
                         voucher_no_id = _id.id, 
                         transaction_type_ref = str(_gl.transaction_prefix_text),
+                        reference_no = str(_gl.transaction_prefix_text) + str(_voucher_no_ref),
                         account_reference_no = _voucher_no_ref,
                         transaction_prefix_id = _ser.id,
                         transaction_no = _ser.serial_number,
@@ -2716,6 +2622,7 @@ def patch_sales_invoice_id(): # audited
                     db.General_Ledger.insert( # ib account entry at tax price
                         voucher_no_id = _id.id, 
                         transaction_type_ref = str(_gl.transaction_prefix_text),
+                        reference_no = str(_gl.transaction_prefix_text) + str(_voucher_no_ref),
                         account_reference_no = _voucher_no_ref,
                         transaction_prefix_id = _ser.id,
                         transaction_no = _ser.serial_number,
@@ -2739,6 +2646,7 @@ def patch_sales_invoice_id(): # audited
                     db.General_Ledger.insert(# ib account entry at average cost
                         voucher_no_id = _id.id, 
                         transaction_type_ref = str(_gl.transaction_prefix_text),
+                        reference_no = str(_gl.transaction_prefix_text) + str(_voucher_no_ref),
                         account_reference_no = _voucher_no_ref,
                         transaction_prefix_id = _ser.id,
                         transaction_no = _ser.serial_number,
@@ -2782,6 +2690,7 @@ def patch_sales_invoice_id(): # audited
                     db.General_Ledger.insert(
                         voucher_no_id = _id.id, 
                         transaction_type_ref = str(_gl.transaction_prefix_text),
+                        reference_no = str(_gl.transaction_prefix_text) + str(_voucher_no_ref),
                         account_reference_no = _voucher_no_ref,
                         transaction_prefix_id = _ser.id,
                         transaction_no = _ser.serial_number,
@@ -2814,6 +2723,7 @@ def patch_sales_invoice_id(): # audited
         db.General_Ledger.insert(
             voucher_no_id = _id.id,
             transaction_type_ref = str(_gl.transaction_prefix_text),
+            reference_no = str(_gl.transaction_prefix_text) + str(_voucher_no_ref),
             account_reference_no = _voucher_no_ref,
             transaction_prefix_id = _ser.id,
             transaction_no = _ser.serial_number,
@@ -2830,7 +2740,7 @@ def patch_sales_invoice_id(): # audited
             debit = float(_id.total_amount_after_discount or 0) + float(_id.delivery_charges or 0),
             description = str(_gl.common_text) +  ' ' +  str(_gl.transaction_prefix_text) + str(_voucher_no_ref),
             batch_posting_seq = _seq,
-            gl_entry_ref = str(_ser.prefix)+str(_ser.serial_number) + '/' + str(_row.serial_number))
+            gl_entry_ref = str(_ser.prefix)+str(_ser.serial_number) + '/' + str(_id.account) + '/' +str(_row.serial_number))
         _row.update_record()
         _id.update_record(gl_batch_posting = True, gl_batch_posting_date = request.now,gl_batch_posting_seq = _seq, gl_entry_ref = str(_ser.prefix)+str(_ser.serial_number)+ '/' +str(_row.serial_number)) 
         
@@ -2839,6 +2749,7 @@ def patch_sales_invoice_id(): # audited
             db.General_Ledger.insert(
                 voucher_no_id = _id.id,
                 transaction_type_ref = str(_gl.transaction_prefix_text),
+                reference_no = str(_gl.transaction_prefix_text) + str(_voucher_no_ref),
                 account_reference_no = _voucher_no_ref,
                 transaction_prefix_id = _ser.id,
                 transaction_no = _ser.serial_number,
@@ -2855,7 +2766,7 @@ def patch_sales_invoice_id(): # audited
                 debit = 0,
                 description = str(_gl.common_text2) +  ' ' +  str(_gl.transaction_prefix_text) + str(_voucher_no_ref),
                 batch_posting_seq = _seq,
-                gl_entry_ref = str(_ser.prefix)+str(_ser.serial_number) + '/' + str(_row.serial_number))
+                gl_entry_ref = str(_ser.prefix)+str(_ser.serial_number) + '/' + str(_ga.provision_delivery_income) +'/' + str(_row.serial_number))
             _row.update_record()
             # _id.gl_entry_ref = str(_id.gl_entry_ref)+ '/' + str(_row.serial_number)
             _id.gl_entry_ref = str(_id.gl_entry_ref) + ' | ' + str(_ser.prefix)+str(_ser.serial_number) + '/' + str(_row.serial_number)
@@ -2867,6 +2778,7 @@ def patch_sales_invoice_id(): # audited
             db.General_Ledger.insert(
                 voucher_no_id = _id.id,
                 transaction_type_ref = str(_gl.transaction_prefix_text),
+                reference_no = str(_gl.transaction_prefix_text) + str(_voucher_no_ref),
                 account_reference_no = _voucher_no_ref,
                 transaction_prefix_id = _ser.id,
                 transaction_no = _ser.serial_number,
@@ -2882,7 +2794,7 @@ def patch_sales_invoice_id(): # audited
                 credit = _id.total_selective_tax, 
                 debit = 0,
                 description = str(_gl.excise_tax_text) +  ' ' +  str(_gl.transaction_prefix_text) + str(_voucher_no_ref),
-                gl_entry_ref = str(_ser.prefix)+str(_ser.serial_number) + '/' + str(_row.serial_number))
+                gl_entry_ref = str(_ser.prefix)+str(_ser.serial_number) + '/' + str(_ga.selective_tax_receivable_account)+ '/' + str(_row.serial_number))
             _row.update_record()
             # _id.gl_entry_ref = str(_id.gl_entry_ref)+ '/' + str(_row.serial_number)
             _id.gl_entry_ref = str(_id.gl_entry_ref) + ' | ' + str(_ser.prefix)+str(_ser.serial_number) + '/' + str(_row.serial_number)
@@ -2895,6 +2807,7 @@ def patch_sales_invoice_id(): # audited
             db.General_Ledger.insert(
                 voucher_no_id = _id.id,
                 transaction_type_ref = str(_gl.transaction_prefix_text),
+                reference_no = str(_gl.transaction_prefix_text) + str(_voucher_no_ref),
                 account_reference_no = _voucher_no_ref,
                 transaction_prefix_id = _ser.id,
                 transaction_no = _ser.serial_number,
@@ -2910,46 +2823,22 @@ def patch_sales_invoice_id(): # audited
                 credit = _id.total_selective_tax_foc, 
                 debit = 0,
                 description = 'FOC ' + str(_gl.excise_tax_text) + str(_gl.transaction_prefix_text) + str(_voucher_no_ref),
-                gl_entry_ref = str(_ser.prefix)+str(_ser.serial_number) + '/' + str(_row.serial_number))
+                gl_entry_ref = str(_ser.prefix)+str(_ser.serial_number) + '/' + str(_ga.selective_tax_receivable_account) + '/' + str(_row.serial_number))
             _row.update_record()
             # _id.gl_entry_ref = str(_id.gl_entry_ref)+ '/' + str(_row.serial_number)
             _id.gl_entry_ref = str(_id.gl_entry_ref) + ' | ' + str(_ser.prefix)+str(_ser.serial_number) + '/' + str(_row.serial_number)
             _id.update_record() 
-            
-        # # all entries from transactions posted in gen ledger update on mas account        
-        for x in db(db.General_Ledger.transaction_no == _ser.serial_number).select():
-            _ma = dc(dc.Master_Account.account_code == x.account_code).select().first()
-            if _ma:   
-                if int(x.department) == 1:
-                    _ma.credit_balance_1 += x.debit or 0 - x.credit or 0
-                    _ma.closing_balance += _ma.credit_balance_1 or 0 
-                elif int(x.department) == 2:
-                    _ma.credit_balance_2 += x.debit or 0 - x.credit or 0
-                    _ma.closing_balance += _ma.credit_balance_2 or 0 
-                elif int(x.department) == 3:                
-                    _ma.credit_balance_3 += x.debit or 0 - x.credit or 0
-                    _ma.closing_balance += _ma.credit_balance_3 or 0
-                elif int(x.department) == 4:
-                    _ma.credit_balance_4 += x.debit or 0 - x.credit or 0
-                    _ma.closing_balance += _ma.credit_balance_4 or 0 
-                elif int(x.department) == 5:
-                    _ma.credit_balance_5 += x.debit or 0 - x.credit or 0
-                    _ma.closing_balance += _ma.credit_balance_5 or 0 
-                elif int(x.department) == 6:
-                    _ma.credit_balance_6 += x.debit or 0 - x.credit or 0
-                    _ma.closing_balance += _ma.credit_balance_6 or 0 
-                elif int(x.department) == 9:
-                    _ma.credit_balance_9 += x.debit or 0 - x.credit or 0
-                    _ma.closing_balance += _ma.credit_balance_9 or 0 
-                _ma.update_record()
- 
+             
         _ser.update_record()
+        # >>------------ Master_Account_Balance_Current_Year <<---------------------
+        calculate_master_account(int(_ser.serial_number))       
+
         response.js = "$('#tblMSH').get(0).reload();alertify.success('Success!')"        
 
 def patch_purchase_receipt_id(): # audited
     _id = dc(dc.Merch_Stock_Header.id == request.args(1)).select().first()
     _chk = db((db.General_Ledger.account_reference_no == _id.voucher_no) & (db.General_Ledger.transaction_type == 1) & (db.General_Ledger.location == _id.location) & (db.General_Ledger.department == _id.dept_code)).select().first()              
-    _ma = dc((dc.Master_Account.account_code == str(_id.account)) & (dc.Master_Account.status == False)).select().first()
+    _ma = dc((dc.Master_Account.account_code == str(_id.account)) & (dc.Master_Account.status == False)).select().first()    
     if _chk:
         response.js = "alertify.warning('Voucher already posted. Please contact the system administrator.');" 
         return True
@@ -2959,6 +2848,14 @@ def patch_purchase_receipt_id(): # audited
     if not _ma:
         response.js = "alertify.warning('Account code %s not found. Please contact the system administrator.');" %(_id.account)               
         return True 
+    if _id.order_account != _ma.account_code:
+        dc.Master_Account.insert(
+            account_code = _id.order_account,
+            account_name = 'ORDER ACCOUNT - ' + str(_id.account),
+            account_sub_group_id = 15,
+            chart_of_account_group_code = '10',
+            master_account_type_id = 'S'            
+        )
     _seq = put_batch_posting_sequence_id()
     _ser = db(db.GL_Transaction_Serial.id == 1).select().first()
     _row = db(db.GL_Transaction_Serial.id == 2).select().first()    
@@ -3004,6 +2901,7 @@ def patch_purchase_receipt_id(): # audited
                     db.General_Ledger.insert(
                         voucher_no_id = _id.id, 
                         transaction_type_ref = str(_gl.transaction_prefix_text),
+                        reference_no = str(_gl.transaction_prefix_text) + str(_id.voucher_no),
                         account_reference_no = _id.voucher_no,
                         transaction_prefix_id = _ser.id,
                         transaction_no = _ser.serial_number,
@@ -3040,6 +2938,7 @@ def patch_purchase_receipt_id(): # audited
                 db.General_Ledger.insert(
                     voucher_no_id = _id.id, 
                     transaction_type_ref = str(_gl.transaction_prefix_text),
+                    reference_no = str(_gl.transaction_prefix_text) + str(_id.voucher_no),
                     transaction_prefix_id = _ser.id,
                     transaction_no = _ser.serial_number,                
                     transaction_date = _id.transaction_date,
@@ -3083,6 +2982,7 @@ def patch_purchase_receipt_id(): # audited
                     db.General_Ledger.insert(
                         voucher_no_id = _id.id, 
                         transaction_type_ref = str(_gl.transaction_prefix_text),
+                        reference_no = str(_gl.transaction_prefix_text) + str(_id.voucher_no),
                         transaction_prefix_id = _ser.id,
                         transaction_no = _ser.serial_number,                    
                         transaction_date = _id.transaction_date,
@@ -3117,6 +3017,7 @@ def patch_purchase_receipt_id(): # audited
                     db.General_Ledger.insert(
                         voucher_no_id = _id.id, 
                         transaction_type_ref = str(_gl.transaction_prefix_text),
+                        reference_no = str(_gl.transaction_prefix_text) + str(_id.voucher_no),
                         transaction_prefix_id = _ser.id,
                         transaction_no = _ser.serial_number,                    
                         transaction_date = _id.transaction_date,
@@ -3149,6 +3050,8 @@ def patch_purchase_receipt_id(): # audited
             _row.serial_number += 1
             db.General_Ledger.insert( # credit selective tax
                 voucher_no_id = _id.id, 
+                transaction_type_ref = str(_gl.transaction_prefix_text),
+                reference_no = str(_gl.transaction_prefix_text) + str(_id.voucher_no),
                 transaction_prefix_id = _ser.id,
                 transaction_no = _ser.serial_number,                    
                 transaction_date = _id.transaction_date,
@@ -3161,8 +3064,7 @@ def patch_purchase_receipt_id(): # audited
                 transaction_date_entered = request.now, 
                 entrydate = request.now , 
                 account_reference_no = _id.voucher_no,  
-                description = _excise_tax_description, 
-                transaction_type_ref = str(_gl.transaction_prefix_text),
+                description = _excise_tax_description,                 
                 gl_entry_ref = str(_ser.prefix) + str(_ser.serial_number) + '/' + str(_ga.selective_tax_payable_account) + '/' + str(_row.serial_number),
                 batch_posting_seq = _seq)    
             _row.update_record()
@@ -3173,6 +3075,7 @@ def patch_purchase_receipt_id(): # audited
             db.General_Ledger.insert( # debit selective tax
                 voucher_no_id = _id.id, 
                 transaction_prefix_id = _ser.id,
+                reference_no = str(_gl.transaction_prefix_text) + str(_id.voucher_no),
                 transaction_no = _ser.serial_number,                    
                 transaction_date = _id.transaction_date,
                 transaction_type = _id.transaction_type,
@@ -3197,6 +3100,7 @@ def patch_purchase_receipt_id(): # audited
         db.General_Ledger.insert(
             voucher_no_id = _id.id, 
             transaction_prefix_id = _ser.id,
+            reference_no = str(_gl.transaction_prefix_text) + str(_id.voucher_no),
             transaction_no = _ser.serial_number,                
             transaction_date = _id.transaction_date,
             transaction_type = _id.transaction_type,
@@ -3222,6 +3126,7 @@ def patch_purchase_receipt_id(): # audited
         db.General_Ledger.insert(
             voucher_no_id = _id.id, 
             transaction_prefix_id = _ser.id,
+            reference_no = str(_gl.transaction_prefix_text) + str(_id.voucher_no),
             transaction_no = _ser.serial_number,                
             transaction_date = _id.transaction_date,
             transaction_type = _id.transaction_type,
@@ -3242,534 +3147,12 @@ def patch_purchase_receipt_id(): # audited
         _id.update_record(gl_batch_posting = True, gl_batch_posting_date = request.now, gl_batch_posting_seq = _seq, gl_entry_ref = _serial_id)        
         # end debit order account ------------------------
         _ser.update_record()
-    # >> begin update master_account table ---------------------------
-    for x in db(db.General_Ledger.transaction_no == _ser.serial_number).select():
-        _ma = dc(dc.Master_Account.account_code == x.account_code).select().first()
-        if _ma:
-            if int(x.department) == 1:
-                _ma.credit_balance_1 += x.debit or 0 - x.credit or 0
-            elif int(x.department) == 2:
-                _ma.credit_balance_2 += x.debit or 0 - x.credit or 0
-            elif int(x.department) == 3:                
-                _ma.credit_balance_3 += x.debit or 0 - x.credit or 0                        
-            elif int(x.department) == 4:
-                _ma.credit_balance_4 += x.debit or 0 - x.credit or 0
-            elif int(x.department) == 5:
-                _ma.credit_balance_5 += x.debit or 0 - x.credit or 0
-            elif int(x.department) == 6:
-                _ma.credit_balance_6 += x.debit or 0 - x.credit or 0
-            elif int(x.department) == 9:
-                _ma.credit_balance_9 += x.debit or 0 - x.credit or 0
-            _ma.update_record()             
-    # << end update master_account table ---------------------------
-    # print(': {:15} {:15} {:15}'.format(x.account_code, x.debit, x.credit))
+
+    # >>------------ Master_Account_Balance_Current_Year <<---------------------
+    calculate_master_account(int(_ser.serial_number))       
 
     response.js = "$('#tblMSH').get(0).reload();alertify.success('Success!');"                
-
-def old_patch_purchase_receipt_id(): # audited
-    _id = dc(dc.Merch_Stock_Header.id == request.args(1)).select().first()
-    if str(_id.account[:2]) != '16' and str(_id.account[:2]) != '17' and str(_id.account[:2]) != '25' and str(_id.account[:2]) != '28':
-        response.js = "alertify.warning('Please contact the administration.');" 
-        return True
-    _seq = put_batch_posting_sequence_id()
-    _ser = db(db.GL_Transaction_Serial.id == 1).select().first()
-    _row = db(db.GL_Transaction_Serial.id == 2).select().first()    
-    _ga = db(db.General_Account.id == 1).select().first()
-    _gl = db(db.GL_Description_Library.transaction_type == 1).select().first()    
-    _ma = dc((dc.Master_Account.account_code == str(_id.account)) & (dc.Master_Account.status == False)).select().first()
-    _supplier_invoice = ''
-    if _id.supplier_invoice:
-        _supplier_invoice = '-INV' + str(_id.supplier_invoice)
-    _description = str(_gl.order_no_text) + str(_id.order_account) + ' ' + str(_gl.purchase_receipt_no_text) + str(_id.voucher_no)
-    _excise_tax_description = str(_gl.excise_tax_text) + str(_id.voucher_no)
-    _account_ref = str(_gl.transaction_prefix_text) + str(_id.voucher_no)
-    _TXN_ref = str(_gl.transaction_prefix_text)                 
-    _purchase_description = str(_gl.order_no_text) + str(_id.order_account) + ' ' + str(_gl.purchase_receipt_no_text) + str(_id.voucher_no)                
-    _short_description = str(_gl.short_supply_text) + str(_supplier_invoice)
-    _order_transaction_description = str(_gl.order_no_text) + str(_id.order_account) + ' ' + str(_gl.purchase_receipt_no_text) + str(_id.voucher_no)
-    _damaged_description = str(_gl.damaged_supply_text) + str(_id.order_account)
-    if not _ma:
-        response.js = "alertify.warning('Account code %s not found.');" %(_id.account)                
-    elif _ma:
-        _ser.serial_number += 1
-        _account = _id.account
-        if str(_id.account[:2]) == '25':
-            _account = '16' + str(_id.account[2:])
-        if str(_id.account[:2]) == '28': 
-            _trnx = dc((dc.Merch_Stock_Transaction.merch_stock_header_id == int(_id.id)) & (dc.Merch_Stock_Transaction.delete == False)).select().first()
-            _account = _trnx.aged_supplier_code
-        _sm = dc(dc.Supplier_Master.supp_sub_code == str(_account)).select().first() # get purchase_code
-        if not dc(dc.Master_Account.account_code == _sm.supplier_purchase_account).select().first():
-            dc.Master_Account.insert(account_code = _sm.supplier_purchase_account, account_name = _sm.supp_name, master_account_type_id = 'S')
-        if not dc(dc.Master_Account.account_code == _sm.supplier_ib_account).select().first():
-            dc.Master_Account.insert(account_code = _sm.supplier_ib_account, account_name = _sm.supp_name, master_account_type_id = 'S')
-        if not dc(dc.Master_Account.account_code == _id.order_account).select().first():                        
-            dc.Master_Account.insert(account_code = _id.order_account, account_name = _sm.supp_name, master_account_type_id = 'S')
-            _total_amount = float(_id.total_amount_after_discount or 0)  * float(_id.exchange_rate or 0)
-            _nrm_total_amount = _shr_total_amount = _dam_total_amount = _purchase_amount = _trnx_amount = _order_amount = 0
-            
-            for x in dc((dc.Merch_Stock_Transaction.merch_stock_header_id == int(_id.id)) & (dc.Merch_Stock_Transaction.delete == False)).select():
-                _trnx_amount = float(x.price_cost_after_discount or 0) * int(x.quantity or 0)# * float(n.landed_cost or 0)                                                        
-                if x.category_id == 'N': # normal
-                    _nrm_total_amount += round(_trnx_amount, 3)
-                elif x.category_id == 'S': # short
-                    _shr_total_amount += round(_trnx_amount, 3)
-                elif x.category_id == 'D': # damaged
-                    _dam_total_amount += round(_trnx_amount, 3)
-                                
-            _nrm_total_amount = float(_nrm_total_amount or 0) * float(_id.landed_cost or 0)
-            _shr_total_amount = float(_shr_total_amount or 0) * float(_id.landed_cost or 0)
-            _dam_total_amount = float(_dam_total_amount or 0) * float(_id.landed_cost or 0)
-            _purchase_amount = float(_nrm_total_amount or 0) #+ float(_dam_total_amount or 0) 
-            _order_amount = float(_nrm_total_amount or 0) + float(_shr_total_amount or 0) + float(_dam_total_amount or 0) 
-            # transaction
-            # begin debit purchase account --------------------------------                    
-            db.General_Ledger.insert(
-                voucher_no_id = _id.id, 
-                transaction_type_ref = str(_gl.transaction_prefix_text),
-                account_reference_no = _id.voucher_no,
-                transaction_prefix_id = _ser.id,
-                transaction_no = _ser.serial_number,
-                transaction_date = _id.transaction_date,
-                transaction_type = _id.transaction_type,
-                location = _id.location,
-                transaction_date_entered = request.now, 
-                entrydate = request.now,
-                type = _id.transaction_type,
-                department = _id.dept_code,
-                account_code = _sm.supplier_purchase_account,
-                credit = 0,
-                debit = _purchase_amount,
-                description = _purchase_description,
-                gl_entry_ref = str(_ser.prefix) + str(_ser.serial_number) + '/' + str(_sm.supplier_purchase_account) + '/' + str(_row.serial_number),
-                batch_posting_seq = _seq) # 18 - purchase account            
-            _row.update_record()
-            # end debit purchase account --------------------------------        
-
-            # begin credit order account ---------------------------                       
-            _row.serial_number += 1                                                       
-            db.General_Ledger.insert(
-                voucher_no_id = _id.id, 
-                transaction_type_ref = str(_gl.transaction_prefix_text),
-                transaction_prefix_id = _ser.id,
-                transaction_no = _ser.serial_number,                
-                transaction_date = _id.transaction_date,
-                transaction_type = _id.transaction_type, 
-                location = _id.location,
-                type = _id.transaction_type,               
-                department = _id.dept_code,
-                account_code = _id.order_account, 
-                credit = _order_amount, 
-                debit = 0,
-                transaction_date_entered = request.now, 
-                entrydate = request.now,
-                account_reference_no = _id.voucher_no, 
-                description = _order_transaction_description, 
-                gl_entry_ref = str(_ser.prefix) + str(_ser.serial_number) + '/' + str(_id.order_account) + '/' + str(_row.serial_number),
-                batch_posting_seq = _seq) # 10 - order account
-            # debit supp account short receipt
-            _row.update_record()
-            # x.update_record(gl_batch_posting = True, gl_batch_posting_date = request.now, gl_batch_posting_seq = _seq, gl_entry_ref = str(_ser.prefix) + str(_ser.serial_number) + '/' + str(_id.order_account) + '/' + str(_row.serial_number) )
-            # end credit order account ---------------------------                       
-
-            if _shr_total_amount > 0: 
-                _row.serial_number += 1
-                db.General_Ledger.insert(
-                    voucher_no_id = _id.id, 
-                    transaction_type_ref = str(_gl.transaction_prefix_text),
-                    transaction_prefix_id = _ser.id,
-                    transaction_no = _ser.serial_number,                    
-                    transaction_date = _id.transaction_date,
-                    transaction_type = _id.transaction_type,
-                    location = _id.location,
-                    type = _id.transaction_type,
-                    department = _id.dept_code,
-                    account_code = _id.account, 
-                    credit = 0,
-                    debit = _shr_total_amount,
-                    transaction_date_entered = request.now, 
-                    entrydate = request.now,                    
-                    account_reference_no = _id.voucher_no, 
-                    description = _short_description, 
-                    gl_entry_ref = str(_ser.prefix) + str(_ser.serial_number) + '/' + str(_id.account) + '/' + str(_row.serial_number),
-                    batch_posting_seq = _seq) # 16 - supplier account short
-                _row.update_record()
-                # x.update_record(gl_batch_posting = True, gl_batch_posting_date = request.now, gl_batch_posting_seq = _seq, gl_entry_ref = str(_ser.prefix) + str(_ser.serial_number) + '/' + str(_id.account) + '/' + str(_row.serial_number) )
-            
-            if _dam_total_amount > 0:
-                _row.serial_number += 1
-                db.General_Ledger.insert(
-                    voucher_no_id = _id.id, 
-                    transaction_type_ref = str(_gl.transaction_prefix_text),
-                    transaction_prefix_id = _ser.id,
-                    transaction_no = _ser.serial_number,                    
-                    transaction_date = _id.transaction_date,
-                    transaction_type = _id.transaction_type,
-                    location = _id.location,
-                    type = _id.transaction_type,
-                    department = _id.dept_code,
-                    account_code = _ga.claim_receivable_account, 
-                    credit = 0,
-                    debit = _dam_total_amount,
-                    transaction_date_entered = request.now, 
-                    entrydate = request.now,
-                    account_reference_no = _id.voucher_no, 
-                    description = _damaged_description, 
-                    gl_entry_ref = str(_ser.prefix) + str(_ser.serial_number) + '/' + str(_ga.claim_receivable_account) + '/' + str(_row.serial_number),
-                    batch_posting_seq = _seq) # 08-04 - damaged claim account
-                _row.update_record()    
-                # x.update_record(gl_batch_posting = True, gl_batch_posting_date = request.now, gl_batch_posting_seq = _seq, gl_entry_ref = str(_ser.prefix) + str(_ser.serial_number) + '/' + str(_ga.claim_receivable_account) + '/' + str(_row.serial_number) )        
-
-            # update master account 
-            if _id.total_selective_tax > 0.0:                 
-                _row.serial_number += 1
-                db.General_Ledger.insert( # credit selective tax
-                    voucher_no_id = _id.id, 
-                    transaction_prefix_id = _ser.id,
-                    transaction_no = _ser.serial_number,                    
-                    transaction_date = _id.transaction_date,
-                    transaction_type = _id.transaction_type,
-                    location = _id.location,
-                    department = _id.dept_code,
-                    account_code = _ga.selective_tax_payable_account,
-                    credit = _id.total_selective_tax, 
-                    debit = 0,
-                    transaction_date_entered = request.now, 
-                    entrydate = request.now , 
-                    account_reference_no = _id.voucher_no,  
-                    description = _excise_tax_description, 
-                    transaction_type_ref = str(_gl.transaction_prefix_text),
-                    gl_entry_ref = str(_ser.prefix) + str(_ser.serial_number) + '/' + str(_ga.selective_tax_payable_account) + '/' + str(_row.serial_number),
-                    batch_posting_seq = _seq)    
-                _row.update_record()
-                # x.update_record(gl_batch_posting = True, gl_batch_posting_date = request.now, gl_batch_posting_seq = _seq, gl_entry_ref = str(_ser.prefix) + str(_ser.serial_number) + '/' + str(_ga.selective_tax_payable_account) + '/' + str(_row.serial_number) )        
-                
-                
-                _row.serial_number += 1
-                db.General_Ledger.insert( # debit selective tax
-                    voucher_no_id = _id.id, 
-                    transaction_prefix_id = _ser.id,
-                    transaction_no = _ser.serial_number,                    
-                    transaction_date = _id.transaction_date,
-                    transaction_type = _id.transaction_type,
-                    location = _id.location,
-                    department = _id.dept_code,
-                    account_code = _ga.selective_tax_receivable_account,
-                    credit = 0, 
-                    debit = _id.total_selective_tax,
-                    transaction_date_entered = request.now, 
-                    entrydate = request.now, 
-                    account_reference_no = _id.voucher_no,  
-                    description = _excise_tax_description, 
-                    transaction_type_ref = str(_gl.transaction_prefix_text),
-                    gl_entry_ref = str(_ser.prefix) + str(_ser.serial_number) + '/' + str(_ga.selective_tax_receivable_account) + '/' + str(_row.serial_number),
-                    batch_posting_seq = _seq)    
-                _row.update_record()
-                # x.update_record(gl_batch_posting = True, gl_batch_posting_date = request.now, gl_batch_posting_seq = _seq, gl_entry_ref = str(_ser.prefix) + str(_ser.serial_number) + '/' + str(_ga.selective_tax_receivable_account) + '/' + str(_row.serial_number) )        
-            
-            # begin credit supplier account ------------------------
-            _row.serial_number += 1
-            db.General_Ledger.insert(
-                voucher_no_id = _id.id, 
-                transaction_prefix_id = _ser.id,
-                transaction_no = _ser.serial_number,                
-                transaction_date = _id.transaction_date,
-                transaction_type = _id.transaction_type,
-                location = _id.location,
-                department = _id.dept_code,
-                account_code = _id.account,
-                credit = _total_amount,
-                debit = 0,
-                transaction_date_entered = request.now, 
-                entrydate = request.now, 
-                description = _description,  
-                account_reference_no = _id.voucher_no,  
-                transaction_type_ref = str(_gl.transaction_prefix_text),
-                gl_entry_ref = str(_ser.prefix) + str(_ser.serial_number) + '/' + str(_id.account) + '/' + str(_row.serial_number),
-                batch_posting_seq = _seq) # 16
-            _row.update_record()
-            x.update_record(gl_batch_posting = True, gl_batch_posting_date = request.now, gl_batch_posting_seq = _seq, gl_entry_ref = str(_ser.prefix) + str(_ser.serial_number) + '/' + str(_id.account) + '/' + str(_row.serial_number) )        
-            # end credit supplier account ------------------------
-            
-            # begin debit order account ------------------------
-            _row.serial_number += 1
-            db.General_Ledger.insert(
-                voucher_no_id = _id.id, 
-                transaction_prefix_id = _ser.id,
-                transaction_no = _ser.serial_number,                
-                transaction_date = _id.transaction_date,
-                transaction_type = _id.transaction_type,
-                location = _id.location,
-                department = _id.dept_code,
-                account_code = _id.order_account,
-                credit = 0,
-                debit = _total_amount,
-                transaction_date_entered = request.now,
-                entrydate = request.now, 
-                description = _description,  
-                account_reference_no = _id.voucher_no,  
-                transaction_type_ref = str(_gl.transaction_prefix_text),
-                gl_entry_ref = str(_ser.prefix) + str(_ser.serial_number) + '/' + str(_id.order_account) + '/' + str(_row.serial_number),
-                batch_posting_seq = _seq ) # 10
-            _row.update_record()
-            x.update_record(gl_batch_posting = True, gl_batch_posting_date = request.now, gl_batch_posting_seq = _seq, gl_entry_ref = str(_ser.prefix) + str(_ser.serial_number) + '/' + str(_id.order_account) + '/' + str(_row.serial_number) )        
-            # end debit order account ------------------------
-        else: # existing ----------------------------
-            _account = _id.account
-            if str(_id.account[:2]) == '25':
-                _account = '16' + str(_id.account[2:])
-
-            if str(_id.account[:2]) == '28':
-                _trnx = dc((dc.Merch_Stock_Transaction.merch_stock_header_id == int(_id.id)) & (dc.Merch_Stock_Transaction.delete == False)).select().first()
-                _account = _trnx.aged_supplier_code
-
-            _sm = dc(dc.Supplier_Master.supp_sub_code == str(_account)).select().first()            
-            _total_amount = (float(_id.total_amount_after_discount or 0) + float(_id.other_charges or 0)) * float(_id.exchange_rate or 0)            
-            # transaction                        
-            _nrm_total_amount = _shr_total_amount = _dam_total_amount = _purchase_amount = _trnx_amount = _order_amount = 0
-
-
-            for x in dc(dc.Merch_Stock_Transaction.merch_stock_header_id == int(_id.id)).select():                            
-                _trnx_amount = float(x.price_cost_after_discount or 0) * int(x.quantity or 0)# * float(n.landed_cost or 0)                                                        
-                if x.category_id == 'N': # normal
-                    _nrm_total_amount += round(_trnx_amount, 3)
-                elif x.category_id == 'S': # short
-                    # _row.serial_number += 1
-                    _shr_total_amount += round(_trnx_amount, 3)
-                    # _row.update_record()
-                elif x.category_id == 'D': # damaged
-                    # _row.serial_number += 1
-                    _dam_total_amount += round(_trnx_amount, 3)                  
-                    # _row.update_record()
-                # x.update_record(gl_batch_posting = True, gl_batch_posting_date = request.now, gl_batch_posting_seq = _seq, gl_entry_ref = _gl_entry_ref)          
-            _nrm_total_amount = float(_nrm_total_amount or 0) * float(_id.landed_cost or 0)
-            _shr_total_amount = float(_shr_total_amount or 0) * float(_id.landed_cost or 0)
-            _dam_total_amount = float(_dam_total_amount or 0) * float(_id.landed_cost or 0)
-            _purchase_amount = float(_nrm_total_amount or 0) #+ float(_dam_total_amount or 0) 
-            _order_amount = float(_nrm_total_amount or 0) + float(_shr_total_amount or 0) + float(_dam_total_amount or 0)             
-
-            # begin debit purchase account -------------------------------
-            _row.serial_number += 1
-            db.General_Ledger.insert(
-                voucher_no_id = _id.id, 
-                transaction_prefix_id = _ser.id,
-                transaction_no = _ser.serial_number,
-                transaction_date = _id.transaction_date,
-                transaction_type = _id.transaction_type,
-                location = _id.location,
-                department = _id.dept_code,
-                account_code = _sm.supplier_purchase_account,
-                credit = 0,
-                debit = _purchase_amount,
-                transaction_date_entered = request.now, 
-                entrydate = request.now,                
-                description = _purchase_description, 
-                account_reference_no = _id.voucher_no,  
-                transaction_type_ref = str(_gl.transaction_prefix_text),
-                gl_entry_ref = str(_ser.prefix) + str(_ser.serial_number) + '/' + str(_sm.supplier_purchase_account) + '/' + str(_row.serial_number),
-                batch_posting_seq = _seq) # 18 - purchase account                        
-            _row.update_record()
-            # x.update_record(gl_batch_posting = True, gl_batch_posting_date = request.now, gl_batch_posting_seq = _seq, gl_entry_ref = str(_ser.prefix) + str(_ser.serial_number) + '/' + str(_sm.supplier_purchase_account) + '/' + str(_row.serial_number) )                    
-            # end debit purchase account -------------------------------
-
-            # begin credit order account ---------------------------                                        
-            _row.serial_number += 1
-            db.General_Ledger.insert(
-                voucher_no_id = _id.id, 
-                transaction_prefix_id = _ser.id,
-                transaction_no = _ser.serial_number,                
-                transaction_date = _id.transaction_date,
-                transaction_type = _id.transaction_type,
-                location = _id.location,
-                department = _id.dept_code,
-                account_code =  _id.order_account, 
-                credit = _order_amount, 
-                debit = 0,
-                transaction_date_entered = request.now, 
-                entrydate = request.now,
-                account_reference_no =  _id.voucher_no, 
-                description = _order_transaction_description, 
-                transaction_type_ref = str(_gl.transaction_prefix_text),
-                gl_entry_ref = str(_ser.prefix) + str(_ser.serial_number) + '/' + str(_id.order_account) + '/' + str(_row.serial_number),
-                batch_posting_seq = _seq) # 10 - order account
-            _row.update_record()            
-            # x.update_record(gl_entry_ref = str(x.gl_entry_ref) + '|' + str(_ser.prefix) + str(_ser.serial_number) + '/' + str(_id.order_account) + '/' + str(_row.serial_number))        
-            # end credit order account ---------------------------                                        
-
-            # begin debit supp account short receipt --------------------
-            if _shr_total_amount > 0:
-                _row.serial_number += 1
-                db.General_Ledger.insert(
-                    voucher_no_id = _id.id, 
-                    transaction_prefix_id = _ser.id,
-                    transaction_no = _ser.serial_number,                    
-                    transaction_date = _id.transaction_date,
-                    transaction_type = _id.transaction_type,
-                    location = _id.location,
-                    department = _id.dept_code,
-                    account_code = _id.account, 
-                    credit = 0,
-                    debit = _shr_total_amount,
-                    transaction_date_entered = request.now, 
-                    entrydate = request.now,
-                    account_reference_no = _id.voucher_no, 
-                    description = _short_description, 
-                    transaction_type_ref = str(_gl.transaction_prefix_text),
-                    gl_entry_ref = str(_ser.prefix) + str(_ser.serial_number) + '/' + str(_id.account) + '/' + str(_row.serial_number),
-                    batch_posting_seq = _seq) # 16 - supplier account short
-                _row.update_record()
-                x.update_record(gl_batch_posting = True, gl_batch_posting_date = request.now, gl_batch_posting_seq = _seq, gl_entry_ref = str(_ser.prefix) + str(_ser.serial_number) + '/' + str(_id.account) + '/' + str(_row.serial_number) )        
-            # end debit supp account short receipt --------------------
-
-            # begin debit damaged receipt --------------------
-            if _dam_total_amount > 0:
-                _row.serial_number += 1
-                db.General_Ledger.insert(
-                    voucher_no_id = _id.id, 
-                    transaction_prefix_id = _ser.id,
-                    transaction_no = _ser.serial_number,                    
-                    transaction_date = _id.transaction_date,
-                    transaction_type = _id.transaction_type,
-                    location = _id.location,
-                    department = _id.dept_code,
-                    account_code = _ga.claim_receivable_account, 
-                    credit = 0,
-                    debit = _dam_total_amount, 
-                    transaction_date_entered = request.now, 
-                    entrydate = request.now,
-                    account_reference_no = _id.voucher_no, 
-                    description = _damaged_description, 
-                    transaction_type_ref = str(_gl.transaction_prefix_text),
-                    gl_entry_ref = str(_ser.prefix) + str(_ser.serial_number) + '/' + str(_ga.claim_receivable_account) + '/' + str(_row.serial_number),
-                    batch_posting_seq = _seq) # 0804 - damaged claim account
-                _row.update_record()
-                # x.update_record(gl_batch_posting = True, gl_batch_posting_date = request.now, gl_batch_posting_seq = _seq, gl_entry_ref = str(_ser.prefix) + str(_ser.serial_number) + '/' + str(_ga.claim_receivable_account) + '/' + str(_row.serial_number) )        
-                # end debit damaged receipt --------------------
-            
-            # header 
-            if _id.total_selective_tax > 0.0:                                            
-                # credit selective tax
-                _row.serial_number += 1
-                db.General_Ledger.insert(
-                    voucher_no_id = _id.id, 
-                    transaction_prefix_id = _ser.id,
-                    transaction_no = _ser.serial_number,                    
-                    transaction_date = _id.transaction_date,
-                    transaction_type = _id.transaction_type,
-                    location = _id.location,
-                    department = _id.dept_code,
-                    account_code = _ga.selective_tax_payable_account,
-                    credit = _id.total_selective_tax, 
-                    debit = 0,
-                    transaction_date_entered = request.now, 
-                    entrydate = request.now, 
-                    account_reference_no = _id.voucher_no, 
-                    description = _excise_tax_description, 
-                    transaction_type_ref = str(_gl.transaction_prefix_text),
-                    gl_entry_ref = str(_ser.prefix) + str(_ser.serial_number) + '/' + str(_ga.selective_tax_payable_account) + '/' + str(_row.serial_number),
-                    batch_posting_seq = _seq)    
-                _row.update_record()
-                x.update_record(gl_batch_posting = True, gl_batch_posting_date = request.now, gl_batch_posting_seq = _seq, gl_entry_ref = str(_ser.prefix) + str(_ser.serial_number) + '/' + str(_ga.selective_tax_payable_account) + '/' + str(_row.serial_number) )        
-                # debit selective tax
-                _row.serial_number += 1
-                db.General_Ledger.insert(
-                    voucher_no_id = _id.id, 
-                    transaction_prefix_id = _ser.id,
-                    transaction_no = _ser.serial_number,                    
-                    transaction_date = _id.transaction_date,
-                    transaction_type = _id.transaction_type,
-                    location = _id.location,
-                    department = _id.dept_code,
-                    account_code = _ga.selective_tax_receivable_account,
-                    credit = 0, 
-                    debit = _id.total_selective_tax,
-                    transaction_date_entered = request.now, 
-                    entrydate = request.now, 
-                    account_reference_no = _id.voucher_no, 
-                    description = _excise_tax_description, 
-                    transaction_type_ref = str(_gl.transaction_prefix_text),
-                    gl_entry_ref = str(_ser.prefix) + str(_ser.serial_number) + '/' + str(_ga.selective_tax_receivable_account) + '/' + str(_row.serial_number),
-                    batch_posting_seq = _seq)    
-                _row.update_record()
-                x.update_record(gl_batch_posting = True, gl_batch_posting_date = request.now, gl_batch_posting_seq = _seq, gl_entry_ref = str(_ser.prefix) + str(_ser.serial_number) + '/' + str(_ga.selective_tax_receivable_account) + '/' + str(_row.serial_number))        
-            # credit supplier account/ib account
-            _row.serial_number += 1
-            db.General_Ledger.insert(
-                voucher_no_id = _id.id, 
-                transaction_prefix_id = _ser.id,
-                transaction_no = _ser.serial_number,                
-                transaction_date = _id.transaction_date,
-                transaction_type = _id.transaction_type,
-                location = _id.location,
-                department = _id.dept_code,
-                account_code = _id.account,
-                credit = _total_amount,
-                debit = 0,
-                transaction_date_entered = request.now, 
-                entrydate = request.now, 
-                description = _description,  
-                account_reference_no = _id.voucher_no, 
-                transaction_type_ref = str(_gl.transaction_prefix_text), 
-                gl_entry_ref = str(_ser.prefix) + str(_ser.serial_number) + '/' + str(_id.account) + '/' + str(_row.serial_number),
-                batch_posting_seq = _seq) # 16
-            _row.update_record()
-            x.update_record(gl_batch_posting = True, gl_batch_posting_date = request.now, gl_batch_posting_seq = _seq, gl_entry_ref = str(_ser.prefix) + str(_ser.serial_number) + '/' + str(_id.account) + '/' + str(_row.serial_number) )        
-            # begin debit order account from header ------------------------
-            _row.serial_number += 1
-            db.General_Ledger.insert(
-                voucher_no_id = _id.id, 
-                transaction_prefix_id = _ser.id,
-                transaction_no = _ser.serial_number,                
-                transaction_date = _id.transaction_date,
-                transaction_type = _id.transaction_type,
-                location = _id.location,
-                department = _id.dept_code,
-                account_code = _id.order_account,
-                credit = 0,
-                debit = _total_amount,
-                transaction_date_entered = request.now, 
-                entrydate = request.now, 
-                description = _description,  
-                account_reference_no = _id.voucher_no, 
-                transaction_type_ref = str(_gl.transaction_prefix_text),
-                gl_entry_ref = str(_ser.prefix) + str(_ser.serial_number) + '/' + str(_id.order_account) + '/' + str(_row.serial_number),
-                batch_posting_seq = _seq) # 10                                        
-            _row.update_record()
-            x.update_record(gl_batch_posting = True, gl_batch_posting_date = request.now, gl_batch_posting_seq = _seq, gl_entry_ref = str(_ser.prefix) + str(_ser.serial_number) + '/' + str(_id.order_account) + '/' + str(_row.serial_number))        
-            # end debit order account from header ------------------------
-        _id.update_record(gl_batch_posting = True, gl_batch_posting_date = request.now,gl_batch_posting_seq = _seq)
-        _ser.update_record()
-
-        # >> begin update merch_stock_transaction gl field ---------------------------
-        _gl_entry_ref = db(db.General_Ledger.transaction_no == _ser.serial_number).select().first()
-        for x in dc((dc.Merch_Stock_Transaction.merch_stock_header_id == int(_id.id)) & (dc.Merch_Stock_Transaction.category_id != 'P') & (dc.Merch_Stock_Transaction.category_id != 'S') & (dc.Merch_Stock_Transaction.category_id != 'D') & (dc.Merch_Stock_Transaction.delete == False)).select():
-            x.update_record(gl_batch_posting = True, gl_batch_posting_date = request.now, gl_batch_posting_seq = _seq, gl_entry_ref = _gl_entry_ref.gl_entry_ref)
-
-        # << end update merch_stock_transaction gl field ---------------------------
-
-        # >> begin update master_account table ---------------------------
-        for x in db(db.General_Ledger.transaction_no == _ser.serial_number).select():
-            _ma = dc(dc.Master_Account.account_code == x.account_code).select().first()
-            if _ma:
-                if int(x.department) == 1:
-                    _ma.credit_balance_1 += x.debit or 0 - x.credit or 0
-                elif int(x.department) == 2:
-                    _ma.credit_balance_2 += x.debit or 0 - x.credit or 0
-                elif int(x.department) == 3:                
-                    _ma.credit_balance_3 += x.debit or 0 - x.credit or 0                        
-                elif int(x.department) == 4:
-                    _ma.credit_balance_4 += x.debit or 0 - x.credit or 0
-                elif int(x.department) == 5:
-                    _ma.credit_balance_5 += x.debit or 0 - x.credit or 0
-                elif int(x.department) == 6:
-                    _ma.credit_balance_6 += x.debit or 0 - x.credit or 0
-                elif int(x.department) == 9:
-                    _ma.credit_balance_9 += x.debit or 0 - x.credit or 0
-                _ma.update_record()             
-        # << end update master_account table ---------------------------
-        # print(': {:15} {:15} {:15}'.format(x.account_code, x.debit, x.credit))
-
-        response.js = "$('#tblMSH').get(0).reload();alertify.success('Success!');"                
+    # print(': {:15} {:15} {:15}'.format(x.account_code, x.debit, x.credit))
 
 def get_general_ledger_account_table():    
     ctr = 0
@@ -3942,15 +3325,23 @@ def post_general_ledger_session():
 def load_general_ledger_grid():
     row = []
     ctr = _total_debit_amount = _total_credit_amount = 0
-    head = THEAD(TR(TD('#'),TD('Date'),TD('Transaction No.'),TD('Trnx Type'),TD('Loc.'),TD('Dept.'),TD('Account Ref No.'),TD('Account Code'),TD('Debit Amount'),TD('Credit Amount'),TD('Description'),TD('Reff.')),_class='bg-red')
+    head = THEAD(TR(TD('#'),TD('Date'),TD('Transaction No.'),TD('Trnx Type'),TD('Loc.'),TD('Dept.'),TD('Ref.No'),TD('Voucher No.'),TD('Account Code'),TD('Debit Amount'),TD('Credit Amount'),TD('Amount Paid'),TD('A/C Paymnt Ref.'),TD('Description'),TD('GL Entry Ref.')),_class='bg-red')
     for n in db().select(orderby = db.General_Ledger.id):
         ctr += 1
         _total_debit_amount += n.debit
         _total_credit_amount += n.credit        
-        # print(': {:5} {:15} {:15}'.format(n.transaction_no, n.debit, n.credit))
-        # print(':'), n.transaction_no, n.debit, n.credit
-        _trnx = A(n.transaction_prefix_id.prefix,n.transaction_no, _title='Entry Date', _type='button', _role='button', callback=URL('general_ledger','get_posted_by', args = n.id, extension = False))
+        _trnx = A(n.transaction_prefix_id.prefix,n.transaction_no, _title='Entry Date', _type='button', _role='button', callback=URL('general_ledger','get_posted_by', args = n.id, extension = False))        
         _trnx_type = A(n.account_reference_no, _title='Details', _type='button', _role='button', callback=URL('consolidated','get_consolidated_transactions_id', args = [n.transaction_type, n.voucher_no_id], extension = False))
+        if n.type == 21 or n.type == 22:
+            _trnx = A(n.transaction_prefix_id.prefix,n.transaction_no, _title='Entry Date', _type='button', _role='button', callback=URL('account_transaction_general_ledger','get_account_transaction_general_ledger_id', args = [1, n.transaction_type, n.id], extension = False))        
+            _trnx_type = A(n.account_reference_no, _title='Details', _type='button', _role='button', callback=URL('account_transaction_general_ledger','get_account_transaction_general_ledger_id', args = [2, n.transaction_type, n.id], extension = False))
+        elif n.type == 23:
+            _trnx = A(n.transaction_prefix_id.prefix,n.transaction_no, _title='Entry Date', _type='button', _role='button', callback=URL('account_transaction_general_ledger','get_account_transaction_general_ledger_id', args = [1, n.transaction_type, n.id], extension = False))        
+            _trnx_type = A(n.account_reference_no, _title='Details', _type='button', _role='button', callback=URL('account_transaction_general_ledger','get_account_transaction_general_ledger_id', args = [2, n.transaction_type, n.id], extension = False))
+        elif n.type == 24:
+            _trnx = A(n.transaction_prefix_id.prefix,n.transaction_no, _title='Entry Date', _type='button', _role='button', callback=URL('account_transaction_general_ledger','get_account_transaction_general_ledger_id', args = [1, n.transaction_type, n.id], extension = False))        
+            _trnx_type = A(n.account_reference_no, _title='Details', _type='button', _role='button', callback=URL('account_transaction_general_ledger','get_account_transaction_general_ledger_id', args = [2, n.transaction_type, n.id], extension = False))
+
         row.append(TR(
             TD(ctr),
             TD(n.transaction_date),
@@ -3958,17 +3349,20 @@ def load_general_ledger_grid():
             TD(n.transaction_type_ref),
             TD(n.location),
             TD(n.department),
+            TD(n.reference_no),
             TD(_trnx_type),
             TD(n.account_code),
-            TD(locale.format('%.3F',n.debit or 0, grouping = True), _align='right'),
-            TD(locale.format('%.3F',n.credit or 0, grouping = True), _align='right'),
+            TD(locale.format('%.2F',n.debit or 0, grouping = True), _align='right'),
+            TD(locale.format('%.2F',n.credit or 0, grouping = True), _align='right'),
+            TD(locale.format('%.2F',n.amount_paid or 0, grouping = True), _align='right'),
+            TD(n.rv_payment_reference),
             TD(n.description),
             TD(n.gl_entry_ref)))
     _bg_class = 'bg-green color-palette'
     if _total_debit_amount != _total_credit_amount:
         _bg_class = 'bg-red color-palette'
     body = TBODY(*row)
-    foot = TFOOT(TR(TD(),TD(),TD(),TD(),TD(),TD(),TD(),TD('Total Amount:'),TD(locale.format('%.3F',_total_debit_amount or 0, grouping = True), _align='right',_class=_bg_class),TD(locale.format('%.3F',_total_credit_amount or 0, grouping = True), _align='right',_class=_bg_class),TD(),TD()))
+    foot = TFOOT(TR(TD(),TD(),TD(),TD(),TD(),TD(),TD(),TD('Total Amount:',_colspan='2',_align='right'),TD(locale.format('%.2F',_total_debit_amount or 0, grouping = True), _align='right',_class=_bg_class),TD(locale.format('%.2F',_total_credit_amount or 0, grouping = True), _align='right',_class=_bg_class),TD(),TD(),TD(),TD()))
     table = TABLE(*[head, body,foot],_class='table table-hover')
     return dict(table = table)
 

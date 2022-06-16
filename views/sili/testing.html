@@ -1,27 +1,30 @@
 {{extend 'layout.html'}}
-<section class="content">
-    <div class="row">
-        <button type="button" class="btn btn-block btn-default btn-flat" onclick="FuncAlert()">Default</button>
-    </div>
-</section>
-
-
-
-    
-<script>       
-    $(document).ready(function(){
-        $(".table").DataTable();
-    });
-
-    function FuncAlert(){
-        // alertify.confirm().set('resizable':true, 'title':'Title','message':'message here').resizeTo('100%','50%');"   
-        // set multiple settings/options
-        alertify.confirm().setHeader('Title'); 
-        // alertify.confirm().setting({'modal':false,'closable':true,'resizable':true }).show();
-
-        // set multiple settings/options
-        // alertify.confirm().setting({'modal':false, 'closable':false});
-        // get a setting/option value
-        alertify.confirm('<table><tr><td>Header</td></tr><tr><td>Row</td></tr></table>').set('resizable',true).resizeTo('50%','50%');
-    }
+<div class="content">
+	<div class="row">
+		{{=form}}
+	</div>  
+</div>
+<script src="{{=URL('static','js/jscascade.js')}}"></script>
+<script>
+	jQuery(document).ready(function($){
+		var data = [
+			{ text: 'Choose Department', value: null},
+			{{for d in db().select(db.General_Department_Cost_Center.ALL):}}
+			{ text: "{{=d.department_name}}", value: "{{=d.id}}",
+				children: [ { text: 'Choose Cost Category', value:  null}, {{for n in db().select(orderby = db.Cost_Center_Category.cost_center_category_name):}}
+					
+					{ text: "{{=n.cost_center_category_name}}, {{=n.cost_center_category_code}} ", value: "{{=n.id}}", 
+					
+					children: [ { text: 'Choose Cost Center', value: null}, {{for c in db((db.Cost_Center.dept_code_id == d.id) & (db.Cost_Center.cost_center_category_group_id == n.cost_center_category_group_id)).select(orderby = db.Cost_Center.cost_center_name):}}
+						{ text: '{{=c.cost_center_name}}, {{=c.cost_center_code}}', value: '{{=c.id}}'}, {{pass}}
+					],
+					}, {{pass}}
+				],
+			}, {{pass}}
+		];
+		$("#no_table_dept_code_id").cascadingSelect({ 
+			subSelects: ['#no_table_cost_center_category_id', '#no_table_cost_center_id'],
+            data: data
+		});
+	});
 </script>

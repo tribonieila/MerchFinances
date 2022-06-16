@@ -1,5 +1,6 @@
 
 import string, random, locale, datetime
+locale.setlocale(locale.LC_ALL, '')
 
 def id_generator():    
     return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6))
@@ -7,6 +8,7 @@ def id_generator():
 def get_item_description():
     _ma = dc(dc.Master_Account.account_code == request.vars.account_credit_code).select().first()
     if _ma:
+        session.account_credit_code = request.vars.account_credit_code
         return DIV(SPAN(I(_class='fas fa-info-circle'),_class='info-box-icon bg-aqua'),DIV(SPAN('Master Account',_class='info-box-text'),SPAN(str(_ma.account_code) + ' - ' + str(_ma.account_name),_class='info-box-number'),_class='info-box-content'),_class='info-box')
     elif not _ma:
         return DIV(SPAN(I(_class='fas fa-times-circle'),_class='info-box-icon bg-red'),DIV(SPAN('Master Account',_class='info-box-text'),SPAN('Not Found!',_class='info-box-number'),_class='info-box-content'),_class='info-box')
@@ -17,611 +19,56 @@ def put_batch_posting_sequence_id():
     _seq = int(_id.sequence_no) + 1
     _id.update_record(sequence_no = _seq)
     return _seq
-# -------------------   R E C E I P T  V O U C H E R   ----------------------
-@auth.requires_login()
-def get_receipt_voucher_grid():
-    ctr = 0
-    row = []
-    _vn = db(db.Account_Voucher_Type.account_voucher_transaction_type == 21).select().first()
-    head = THEAD(TR(TD('#'),TD('Date'),TD('VOU.No.'),TD('Type'),TD('Code'),TD('Total Amount'),TD('Status'),TD('Required Action'),TD()),_class='bg-red')
-    for n in db((db.Account_Voucher_Request.created_by == auth.user_id) & (db.Account_Voucher_Request.status_id == 9)).select(orderby = db.Account_Voucher_Request.id):
-        ctr += 1
-        work_lnk = A(I(_class='fas fa-user-plus'), _title='View/Update/Cancel', _type='button  ', _role='button', _class='btn btn-icon-toggle' , _href=URL('account_transaction','post_receipt_voucher',args = n.id, extension = False))
-        prin_lnk = A(I(_class='fas fa-print'), _title='View/Update/Cancel', _type='button  ', _role='button', _class='btn btn-icon-toggle', _target='blank', _href=URL('account_transaction_reports','get_account_voucher_request_id',args = n.id, extension = False))
-        btn_lnk = DIV(work_lnk, prin_lnk)
-        row.append(TR(
-            TD(ctr),
-            TD(n.transaction_reference_date),
-            TD(_vn.account_voucher_transaction_code,n.voucher_no),
-            TD(_vn.account_voucher_transaction_type),
-            TD(_vn.account_voucher_transaction_code),
-            TD(locale.format('%.3F', n.total_amount or 0, grouping = True),_align='right'),
-            TD(n.status_id.description),
-            TD(n.status_id.required_action),
-            TD(btn_lnk)))
-    body = TBODY(*[row])
-    table = TABLE([head, body],_class='table')
-    return dict(table = table)
 
-@auth.requires_login()
-def get_receipt_voucher_confirmation_grid():
-    ctr = 0
-    row = []
-    _vn = db(db.Account_Voucher_Type.account_voucher_transaction_type == 21).select().first()
-    head = THEAD(TR(TD('#'),TD('Date'),TD('VOU.No.'),TD('Type'),TD('Code'),TD('Total Amount'),TD('Status'),TD('Required Action'),TD()),_class='bg-red')
-    for n in db((db.Account_Voucher_Request.created_by == auth.user_id) & (db.Account_Voucher_Request.status_id == 9)).select(orderby = db.Account_Voucher_Request.id):
-        ctr += 1
-        work_lnk = A(I(_class='fas fa-user-check'), _title='Approved/Reject', _type='button  ', _role='button', _class='btn btn-icon-toggle' , callback=URL('account_transaction','get_receipt_voucher_confirmation_id',args = n.id, extension = False))
-        btn_lnk = DIV(work_lnk)
-        row.append(TR(
-            TD(ctr),
-            TD(n.transaction_reference_date),
-            TD(_vn.account_voucher_transaction_code,n.voucher_no),
-            TD(_vn.account_voucher_transaction_type),
-            TD(_vn.account_voucher_transaction_code),
-            TD(locale.format('%.3F', n.total_amount or 0, grouping = True),_align='right'),
-            TD(n.created_by.first_name[:1],'.',n.created_by.last_name,' ',SPAN(n.status_id.description,_class='text-muted')),
-            TD(n.status_id.required_action),
-            TD(btn_lnk)))
-    body = TBODY(*[row])
-    table = TABLE([head, body],_class='table', _id='tblConf')
-    return dict(table = table)
+def get_general_ledger_account_transaction_id():
+    if int(request.args(0)) == 21:
+        _id = db(db.Receipt_Voucher_Header.id == request.args(1)).select().first()
+        if not _id:
+            response.js = "alertify.notify('Account Ref. is empty or not found.','warning')"
+            return
+        elif _id:
+            table = TABLE('TABLE')
 
-def patch_receipt_voucher():
-    if int(request.args(0)) == 1:        
-        _account_code = ''
-        _ga = db(db.General_Account.id == 1).select().first()
-        if int(request.vars.account_payment_mode_id or 0) == 1 or (int(request.vars.account_payment_mode_id or 0) == 2):
-            _account_code = _ga.receipt_voucher_account
-        elif (int(request.vars.account_payment_mode_id or 0) == 3):            
-            _account_code = _ga.pdc_receipt_voucher_account
-        response.js = "$('#Account_Voucher_Request_account_code').val('%s')" % (_account_code)
-    elif int(request.args(0)) == 2:
-        _id = db(db.Account_Voucher_Request.id == request.args(1)).select().first()
-        _id.update_record(status_id = 2)
-        redirect(URL('account_transaction','get_receipt_voucher_grid'))
-    elif int(request.args(0)) == 3:        
-        _trnx = db(db.Transaction_Payment_Type.id == request.vars.transaction_payment_type_id).select().first()
-        if int(request.vars.transaction_payment_type_id or 0) == 2:
-            ctr = 0
-            row = []
-            head = THEAD(TR(TD('#'),TD('A.Reff.'),TD('Inv.Amt.'),TD('Amt.Paid'),TD('Balance'),TD()))
-            for n in db((db.General_Ledger.account_code == request.vars.account_credit_code) & (db.General_Ledger.debit > 0)).select():
-                ctr += 1
-                _balance = n.debit - n.amount_paid
-                row.append(TR(
-                    TD(ctr),
-                    TD(n.account_reference_no),
-                    TD(locale.format('%.3F',n.debit or 0, grouping = True)),
-                    TD(locale.format('%.3F',n.amount_paid or 0, grouping = True)),
-                    TD(locale.format('%.3F',_balance or 0, grouping = True)),                    
-                    TD(BUTTON('Select',_class='btn btn-block btn-success btn-flat btn-xs', _id='BtnSelect',_name='BtnSelect',_onclick="ajax('%s')" % URL('account_transaction','get_general_ledger_id', args = n.id)))
-                ))
-            body = TBODY(*row)
-            table = TABLE(*[head,body],_class='table')
-            response.js = "alertify.confirm('%s').setHeader('General Ledger');alertify.confirm().set('resizable',true).resizeTo('50%','50%'); " %(XML('<table><tr><td>Header</td></tr><tr><td>Row</td></tr><tr><td>Header</td></tr><tr><td>Row</td></tr></table>'),sanitize = True)
-            # response.js = "alertify.confirm().set('resizable',true).resizeTo('50%','50%');alertify.confirm('General Ledger', '%s', function(){ alertify.success('Ok') }, function(){ $('#Account_Voucher_Transaction_Request_description').val(''); $('#Account_Voucher_Transaction_Request_amount_paid').val(''); alertify.error('Cancel')});" %(table) 
+    elif int(request.args(0)) == 22:
+        _id = db(db.Receipt_Voucher_Confirmation.id == request.args(1)).select().first()
+        if not _id:
+            response.js = "alertify.notify('Account Ref. is empty or not found.','warning')"
+            return
+        elif _id: 
+            table = TABLE(
+                TR(TD('Trnx Date'),TD('Trnx Code'),TD('Voucher No'),TD('Account Ref.'),TD('Payment Mode'),TD('Payment Code'),TD('Total Amount'),TD('Bank Name'),TD('Cheque No.'),TD('Cheque Date')),
+                    TR(
+                        TD(_id.transaction_reference_date),
+                        TD(_id.account_voucher_transaction_code),
+                        TD(),
+                        TD(),
+                        TD(),
+                        TD(),
+                        TD(),
+                        TD(),
+                        TD(),
+                        TD(),
+                        TD())
+                )
+    response.js = "alertify.alert().set({'startMaximized':true, 'title':'General Ledger','message':'%s'}).show();" %(XML(table, sanitize = True))    
 
-
-def get_general_ledger_id():
-    _gl = db(db.General_Ledger.id == request.args(0)).select().first()
-    _balance = _gl.debit - _gl.amount_paid
-    response.js = "$('#Account_Voucher_Transaction_Request_description').val('AGAINST INV%s'); $('#Account_Voucher_Transaction_Request_amount_paid').val('%s');" % (_gl.account_reference_no,_balance)
-    if _gl.prepared == True:
-        response.js = "alertify.notify('already prepared.','error')"
-
-def validate_post_receipt_voucher(form):
-    _vn = db(db.Account_Voucher_Type.account_voucher_transaction_type == 21).select().first()
-    if not request.args(0):        
-        form.vars.status_id = 9
-        form.vars.ticket_no_id = request.vars.ticket_no_id
-        form.vars.voucher_no = _vn.voucher_serial_no + 1
-        _vn.update_record(voucher_serial_no = _vn.voucher_serial_no + 1)
-    elif request.args(0):
-        _id = db(db.Account_Voucher_Request.id == request.args(0)).select().first()        
-        form.vars.ticket_no_id = _id.ticket_no_id        
-    form.vars.account_voucher_transaction_type = _vn.account_voucher_transaction_type
-    form.vars.account_voucher_transaction_code = _vn.account_voucher_transaction_code
-
-# @auth.requires(lambda: auth.has_membership('ACCOUNTS') |  auth.has_membership('ACCOUNTS MANAGER') | auth.has_membership(role = 'MANAGEMENT') | auth.has_membership('ROOT'))        
-def check_membership():
-    if not auth.has_membership('ACCOUNTS') | auth.has_membership('ACCOUNTS MANAGER') | auth.has_membership(role = 'MANAGEMENT') | auth.has_membership('ROOT'):
-        redirect(URL('default','forbidden'))
-
-@auth.requires_login()
-# @auth.requires(check_membership)
-def post_receipt_voucher(): 
-    _total_amount = 0
-    ticket_no_id = id_generator()
-    session.ticket_no_id = ticket_no_id
-    _vn = db(db.Account_Voucher_Type.account_voucher_transaction_type == 21).select().first()
-    db.Account_Voucher_Request.voucher_no.default = _vn.voucher_serial_no + 1
-    db.Account_Voucher_Request.status_id.default = 9
-    db.Account_Voucher_Request.account_payment_mode_id.requires= IS_EMPTY_OR(IS_IN_DB(db(db.Account_Voucher_Payment_Mode.id != 4),db.Account_Voucher_Payment_Mode.id,'%(account_voucher_payment_code)s - %(account_voucher_payment_name)s',zero='Choose Payment Mode'))
-
-    if request.args(0):
-        _id = db(db.Account_Voucher_Request.id == request.args(0)).select().first()
-    form = SQLFORM(db.Account_Voucher_Request, request.args(0))    
-    if form.process(onvalidation = validate_post_receipt_voucher).accepted:
-        response.flash = 'RECORD SAVE'
-        if not request.args(0):
-            _vn.voucher_serial_no += 1
-            _id = db(db.Account_Voucher_Request.created_by == auth.user_id).select().last()
-            for n in db(db.Account_Voucher_Transaction_Request.ticket_no_id == form.vars.ticket_no_id).select():
-                _gl = db((db.General_Ledger.account_code == n.account_credit_code) & (db.General_Ledger.debit > 0)).select().first()
-                n.update_record(account_voucher_request_id = _id.id, department = _gl.department, invoice_no = _gl.account_reference_no, location = _gl.location, voucher_no = _id.voucher_no, account_reference = _id.voucher_no, account_code = _id.account_code)
-                _gl.update_record(prepared = True)
-            _vn.update_record()
-            _total_amount = db.Account_Voucher_Transaction_Request.amount_paid.sum().coalesce_zero()
-            _total_amount = db(db.Account_Voucher_Transaction_Request.ticket_no_id == form.vars.ticket_no_id).select(_total_amount).first()[_total_amount]            
-            _id.update_record(total_amount = _total_amount)
-        elif request.args(0):            
-            _id = db(db.Account_Voucher_Request.id == request.args(0)).select().first()
-            for n in db(db.Account_Voucher_Transaction_Request.account_voucher_request_id == request.args(0)).select():
-                _gl = db((db.General_Ledger.account_code == n.account_credit_code) & (db.General_Ledger.debit > 0)).select().first()
-                n.update_record(account_voucher_request_id = _id.id, department = _gl.department, invoice_no = _gl.account_reference_no, voucher_no = _id.voucher_no, account_reference = _id.voucher_no, account_code = _id.account_code)            
-                _gl.update_record(prepared = True)
-            _total_amount = db.Account_Voucher_Transaction_Request.amount_paid.sum().coalesce_zero()
-            _total_amount = db(db.Account_Voucher_Transaction_Request.account_voucher_request_id == request.args(0)).select(_total_amount).first()[_total_amount]
-            _id.update_record(total_amount = _total_amount)
-        redirect(URL('account_transaction','get_receipt_voucher_grid'))
-    elif form.errors:
-        response.flash = 'FORM HAS ERROR'
-    return dict(form = form, ticket_no_id = ticket_no_id)
-
-def validate_post_receipt_voucher_transaction(form):        
-    _id = dc(dc.Master_Account.account_code == request.vars.account_credit_code).select().first()
-
-    if not _id:
-        form.errors.account_credit_code = 'Account code not found.'
-        response.js = "alertify.error('Account code not found.')"
-    
-    elif request.vars.account_credit_code == '' or request.vars.account_credit_code == None:
-        form.errors.account_credit_code = 'Account credit code is empty.'
-        response.js = "alertify.error('Account credit code is empty.')"
-
-    elif db((db.Account_Voucher_Transaction_Request.account_credit_code == request.vars.account_credit_code) & (db.Account_Voucher_Transaction_Request.transaction_payment_type_id == request.vars.transaction_payment_type_id)).select().first(): # & (db.Account_Voucher_Transaction_Request.ticket_no_id == session.ticket_no_id)
-        form.errors.account_credit_code = 'Account code already exist.'
-        response.js = "alertify.error('Account code already exist.')"
-    elif _id:
-        _vou = db(db.Account_Voucher_Type.account_voucher_transaction_type == 21).select().first()
-        _dep = db(db.General_Department_Cost_Center.id == request.vars.dept_code_id).select().first()
-        _gl = db(db.General_Ledger.account_code == request.vars.account_credit_code).select().first()
-        _loc = None
-        if request.vars.location_cost_center_id:
-            _loc = db(db.General_Location_Cost_Center.id == request.vars.location_cost_center_id).select().first()
-            _loc = _loc.location_code
-
-        if request.args(0):
-            _av = db(db.Account_Voucher_Request.id == int(request.args(0))).select().first()
-            _trnx = db(db.Account_Voucher_Transaction_Request.account_voucher_request_id == request.args(0)).select().first()
-            
-            form.vars.ticket_no_id = _av.ticket_no_id
-            form.vars.account_voucher_request_id = request.args(0)
-            # form.vars.account_reference = _trnx.account_reference
-
-        form.vars.account_voucher_transaction_type = _vou.account_voucher_transaction_type
-        form.vars.account_voucher_transaction_code = _vou.account_voucher_transaction_code
-        form.vars.department_code = _dep.department_code
-        form.vars.location_code = _loc
-        # form.vars.account_reference = _gl.account_reference_no
-            
-@auth.requires_login()
-def post_receipt_voucher_transaction():
-    db.Account_Voucher_Transaction_Request.ticket_no_id.default = session.ticket_no_id
-    _ticket_no_ref = session.ticket_no_id
-    form = SQLFORM(db.Account_Voucher_Transaction_Request)
-    if form.process(onvalidation = validate_post_receipt_voucher_transaction).accepted:
-        if request.args(0):
-            _av = db(db.Account_Voucher_Request.id == int(request.args(0))).select().first()
-            _total_amount = db.Account_Voucher_Transaction_Request.amount_paid.sum().coalesce_zero()
-            _total_amount = db(db.Account_Voucher_Transaction_Request.account_voucher_request_id == request.args(0)).select(_total_amount).first()[_total_amount]
-            _av.update_record(total_amount = _total_amount)
-        response.js = "$('#AVTtbl').get(0).reload();"
-    elif form.errors:
-        response.flash = None
-        response.js = "alertify.error('%s')" %(form.errors)
-    ctr = _total_amount = 0
-    row = []    
-    head = THEAD(TR(TD('#'),TD('AC Code'),TD('Account Name'),TD('Dept.'),TD('Acct.Ref.'),TD('Description'),TD('Amount'),TD('')),_class='bg-red')
-    _query = db(db.Account_Voucher_Transaction_Request.ticket_no_id == _ticket_no_ref).select()    
-    if request.args(0):
-        _query = db(db.Account_Voucher_Transaction_Request.account_voucher_request_id == request.args(0)).select()
-    for n in _query:
-        ctr += 1
-        dele_lnk = A(I(_class='fas fa-trash'), _title='Delete Row', _type='button  ', _role='button', _class='btn btn-icon-toggle delete' , callback=URL('account_transaction','delete_account_transaction_id',args = n.id, extension = False))
-        btn_lnk = DIV(dele_lnk)
-        _am = dc(dc.Master_Account.account_code == n.account_credit_code).select().first()
-        _serial = db(db.Account_Voucher_Type.account_voucher_transaction_type == 21).select().first()
-        _total_amount += float(n.amount_paid or 0)
-        row.append(TR(
-            TD(ctr),            
-            TD(n.account_credit_code),
-            TD(_am.account_name),
-            TD(n.dept_code_id.department_code),
-            TD(n.account_reference),
-            TD(n.description),
-            TD(locale.format('%.3F', n.amount_paid or 0, grouping = True), _align='right'),
-            TD(btn_lnk),
-        ))
-    body = TBODY(*row)
-    foot = TFOOT(TR(
-        TD(),TD(),TD(),TD(),TD(),TD('Total Amount'),TD(locale.format('%.3F', _total_amount or 0, grouping = True), _align ='right'),TD()
-    ))
-    table = TABLE([head, body, foot], _class='table',_id='AVTtbl')
-    return dict(form = form, table = table)
-
-@auth.requires_login()
-def put_receipt_voucher_id(): # to remove
-    form = SQLFORM(db.Account_Voucher_Request, request.args(0))
-    if form.process(onvalidation = validate_post_receipt_voucher).accepted:
-        response.flash = 'Form updated.'
-    elif form.errors:
-        response.flash = 'Form has error.'
-    return dict(form = form)
-
-@auth.requires_login()
-def put_receipt_voucher_transaction_id(): # to remove
-    _total_amount = 0
-    form = SQLFORM(db.Account_Voucher_Transaction_Request)
-    if form.process(onvalidation = validate_post_receipt_voucher_transaction).accepted:
-        response.flash = 'Form updated.'
-        _total_amount = db.Account_Voucher_Transaction_Request.amount_paid.sum().coalesce_zero()
-        _total_amount = db(db.Account_Voucher_Transaction_Request.account_voucher_request_id == request.args(0)).select(_total_amount).first()[_total_amount]
-        _rv = db(db.Account_Voucher_Transaction_Request.id == request.args(0)).select().first()
-        _rv.update_record(total_amount = _total_amount)
-    elif form.errors:
-        response.flash = 'Form has error.'
-
-    ctr = _total_amount = 0
-    row = []
-    
-    head = THEAD(TR(TD('#'),TD('Serial #'),TD('Dept.'),TD('Account Code'),TD('Account Name'),TD('Description'),TD('Amount'),TD('')),_class='bg-red')
-    for n in db(db.Account_Voucher_Transaction_Request.account_voucher_request_id == request.args(0)).select():
-        ctr += 1
-        dele_lnk = A(I(_class='fas fa-trash'), _title='Delete Row', _type='button  ', _role='button', _class='btn btn-icon-toggle delete' , callback=URL('account_transaction','delete_account_transaction_id',args = n.id, extension = False))
-        btn_lnk = DIV(dele_lnk)
-        _am = dc(dc.Master_Account.account_code == n.account_code).select().first()
-        _serial = db(db.Account_Voucher_Type.account_voucher_transaction_type == 21).select().first()
-        _total_amount += n.amount_paid
-        row.append(TR(
-            TD(ctr),
-            TD(_serial.account_voucher_transaction_code,n.serial_no),
-            TD(n.department_id.department_name),
-            TD(n.account_code),
-            TD(_am.account_name),
-            TD(n.description),
-            TD(locale.format('%.3F', n.amount_paid or 0, grouping = True), _align='right'),
-            TD(btn_lnk),
-        ))
-    body = TBODY(*row)
-    foot = TFOOT(TR(
-        TD(),TD(),TD(),TD(),TD(),TD('Total Amount'),TD(locale.format('%.3F', _total_amount or 0, grouping = True), _align ='right'),TD()
-    ))
-    table = TABLE([head, body, foot], _class='table',_id='AVTtbl')
-    return dict(form = form, table = table)
-
-def delete_account_transaction_id():
-    response.js = "alertify.confirm('Account Voucher Receipt', 'Are you sure you want to delete?', function(){ ajax('%s') }, function(){ alertify.error('Cancel')});" % URL('account_transaction','delete_transaction_id',args = request.args(0))
-
-def delete_transaction_id():
-    db(db.Account_Voucher_Transaction_Request.id == request.args(0)).delete()    
-    response.js = "$('#AVTtbl').get(0).reload();alertify.error('Record Deleted.');"
-    # _total_amount = 0
-    # _trnx = db(db.Account_Voucher_Transaction_Request.id == request.args(0)).select().first()
-    # _head = db(db.Account_Voucher_Request.ticket_no_id == _trnx.ticket_no_id).select().first()
-
-    # _total_amount = db.Account_Voucher_Transaction_Request.amount_paid.sum().coalesce_zero()
-    # _total_amount = db(db.Account_Voucher_Transaction_Request.ticket_no_id == _trnx.ticket_no_id).select(_total_amount).first()[_total_amount]    
-    # _head.update_record(total_amount = _total_amount)    
-    # print(':'), _total_amount, _trnx.ticket_no_id, _head.ticket_no_id
-    
-def get_receipt_voucher_confirmation_id():    
-    _id = db(db.Account_Voucher_Request.id == request.args(0)).select().first()
+def get_general_ledger_account_transaction_idx():
+    _id = db(db.General_Ledger.id == request.args(0)).select().first()
     table = TABLE(
-        TR(TD('Date'),TD('Receipt No'),TD('Payment Mode'),TD('Account Code'),TD('Bank Name'),TD('Cheque No.'),TD('Cheque Dated')),
+        TR(TD('Date'),TD('Transaction Type'),TD('Transaction No'),TD('Account Ref No.'),TD('Account Code'),TD('Debit Amount'),TD('Credit Amount'),TD('Amount Paid'),TD('Description'),TD('Reff.')),
         TR(
-            TD(_id.transaction_reference_date),
-            TD(_id.voucher_no),
-            TD(_id.account_payment_mode_id.account_voucher_payment_code, ' - ',_id.account_payment_mode_id.account_voucher_payment_name),
+            TD(_id.transaction_date),
+            TD(_id.transaction_type),
+            TD(_id.transaction_prefix_id.prefix,_id.transaction_no),
+            TD(_id.account_reference_no),
             TD(_id.account_code),
-            TD(_id.bank_name_id),
-            TD(_id.cheque_no),
-            TD(_id.cheque_dated),
-            ),
-        _class='table table-condensed table-bordered')
-    table += TABLE(
-        TR(TD('Purpose'),TD('Received From'),TD('Cost Center'),TD('Location Cost Center'),TD('Remarks'),TD('Status')),
-        TR(
-            TD(_id.purpose),
-            TD(_id.received_from),
-            TD(_id.cost_center),
-            TD(_id.location_cost_center),
-            TD(_id.remarks),
-            TD(_id.status_id.description),
-        ),
-    _class='table table-condensed table-bordered')
-
-    ctr = _total_amount = 0
-    row = []
-    head = THEAD(TR(TD('#'),TD('Code'),TD('Name'),TD('Dept'),TD('Type'),TD('Ref.No.'),TD('Description'),TD('Total Amount')))
-    for n in db(db.Account_Voucher_Transaction_Request.account_voucher_request_id == request.args(0)).select():
-        ctr += 1
-        _ma = dc(dc.Master_Account.account_code == n.account_credit_code).select().first()
-        _total_amount += n.amount_paid
-        row.append(TR(
-            TD(ctr),
-            TD(n.account_credit_code),
-            TD(_ma.account_name),
-            TD(n.dept_code_id.department_code, ' - ', n.dept_code_id.department_name),
-            TD(n.account_voucher_transaction_type),
-            TD(n.account_reference),
-            TD(n.description),
-            TD(locale.format('%.3F', n.amount_paid or 0, grouping = True),_align='right'),
-        ))
-    body = TBODY(*row)
-    foot = TFOOT(TR(
-        TD(),TD(),TD(),TD(),TD(),TD(),TD('Total Amount:',_align='right'),TD(locale.format('%.3F', _total_amount or 0, grouping = True),_align='right')
-    ))
-    table += TABLE(*[head, body, foot], _class='table table-condensed table-bordered')
-
-    table += TABLE(TR(
-        TD(BUTTON('Reject', _class='btn btn-block btn-danger btn-flat',_onclick="ajax('%s')" % URL('account_transaction','patch_receipt_voucher_confirmation_id',args = [1,_id.id]))),
-        TD(BUTTON('Approved', _class='btn btn-block btn-success btn-flat',_onclick="ajax('%s')" % URL('account_transaction','patch_receipt_voucher_confirmation_id',args = [2,_id.id])))
-    ),_class='table table-condensed')
-    response.js = "alertify.alert().set({'startMaximized':true, 'title':'Receipt Voucher Request','message':'%s'}).show();" %(XML(table, sanitize = True))   
-
-def patch_receipt_voucher_confirmation_id():
-    if int(request.args(0)) == 1: # reject
-        _id = db(db.Account_Voucher_Request.id == request.args(1)).select().first()
-        _id.update_record(status_id = 1)
-        response.js = "alertify.alert().close();$('#tblConf').get(0).reload();alertify.error('Rejected!');"
-    elif int(request.args(0)) == 2: # approved
-        _id = db(db.Account_Voucher_Request.id == request.args(1)).select().first()
-        _id.update_record(status_id = 10)
-        sync_receipt_voucher_confirmation()
-        response.js = "alertify.alert().close();$('#tblConf').get(0).reload();alertify.success('Approved!');"
-
-def sync_receipt_voucher_confirmation():
-    _id = db(db.Account_Voucher_Request.id == request.args(1)).select().first()
-    # bank code
-    db.Account_Voucher_Header.insert(
-        voucher_no = _id.voucher_no,
-        transaction_reference_date = _id.transaction_reference_date,
-        account_voucher_transaction_type = _id.account_voucher_transaction_type,
-        account_voucher_transaction_code = _id.account_voucher_transaction_code,
-        account_payment_mode_id = _id.account_payment_mode_id,
-        account_voucher_payment_code = _id.account_voucher_payment_code,
-        receipt_voucher_confirmation_type_id = _id.receipt_voucher_confirmation_type_id,
-        total_amount = _id.total_amount,
-        account_code = _id.account_code,
-        bank_name_id = _id.bank_name_id,
-        cheque_no = _id.cheque_no,
-        cheque_dated = _id.cheque_dated,
-        purpose = _id.purpose,
-        received_from = _id.received_from,
-        collected_by = _id.collected_by,
-        entry_date = _id.entry_date,
-        cost_center = _id.cost_center,
-        location_cost_center = _id.location_cost_center,
-        gl_entry_ref = _id.gl_entry_ref,
-        status_id = _id.status_id,
-        posting_ref_no = _id.posting_ref_no,
-        remarks = _id.remarks)
-    _head = db(db.Account_Voucher_Header.voucher_no == _id.voucher_no).select().first()
-    for n in db(db.Account_Voucher_Transaction_Request.account_voucher_request_id == request.args(1)).select():
-        db.Account_Voucher_Transaction.insert(
-            account_voucher_id = _head.id,
-            account_voucher_transaction_type = n.account_voucher_transaction_type,
-            account_voucher_transaction_code = n.account_voucher_transaction_code,
-            account_code = n.account_code,
-            account_credit_code = n.account_credit_code,
-            account_debit_code = n.account_debit_code,
-            dept_code_id = n.dept_code_id,
-            department_code = n.department_code,
-            location_cost_center_id = n.location_cost_center_id,
-            location_code = n.location_code,
-            transaction_payment_type_id = n.transaction_payment_type_id,
-            amount_paid = n.amount_paid,
-            description = n.description,
-            account_reference = n.account_reference,
-            voucher_no = n.voucher_no,
-            gl_entry_ref = n.gl_entry_ref)
+            TD(locale.format('%.3F',_id.debit or 0, grouping = True), _align='right'),
+            TD(locale.format('%.3F',_id.credit or 0, grouping = True), _align='right'),
+            TD(locale.format('%.3F',_id.amount_paid or 0, grouping = True), _align='right'),
+            TD(_id.description),
+            TD(_id.gl_entry_ref)),_class='table')
+    response.js = "alertify.alert().set({'startMaximized':true, 'title':'General Ledger','message':'%s'}).show();" %(XML(table, sanitize = True))    
     
-    # --------------- POSTING ON GEN. LEDGER ---------------
-    import datetime
-    _seq = put_batch_posting_sequence_id()    
-    _ser = db(db.GL_Transaction_Serial.id == 1).select().first()
-    _row = db(db.GL_Transaction_Serial.id == 2).select().first() 
-    _ga = db(db.General_Account.id == 1).select().first()
-    _gl = db(db.GL_Description_Library.transaction_type == 21).select().first()
-    _gen = db((db.General_Ledger.account_reference_no == _id.voucher_no) & (db.General_Ledger.transaction_type == 21) & (db.General_Ledger.account_code == _id.account_code)).select().first()
-    if not _gen:
-        _ser.serial_number += 1
-        _row.serial_number += 1
-        _voucher_no_serial = str(_ser.prefix)+str(_ser.serial_number) + '/' + str(_id.account_code) + '/' + str(_row.serial_number)        
-        db.General_Ledger.insert(
-            transaction_prefix_id = _ser.id,
-            transaction_no = _ser.serial_number,
-            transaction_date = _id.transaction_reference_date,
-            transaction_type = _id.account_voucher_transaction_type,
-            location = 99, # general
-            transaction_type_ref = _id.account_voucher_transaction_code,
-            transaction_date_entered = request.now,
-            department = 13, # general
-            type = _id.account_voucher_transaction_type,
-            reference_no = str(_id.account_voucher_transaction_code) + str(n.account_reference),
-            account_reference_no = n.account_reference,
-            account_code = _id.account_code,
-            description = str(_gl.common_text) + ' ' + str(n.account_reference),
-            entrydate = request.now,
-            credit = 0,
-            debit = _id.total_amount,
-            amount_paid = _id.total_amount,
-            gl_entry_ref = _voucher_no_serial,
-            batch_posting_seq = _seq,
-            bank_code = _id.account_code
-        )
-        _row.update_record()
-        
-        for n in db(db.Account_Voucher_Transaction_Request.account_voucher_request_id == request.args(1)).select():
-            _row.serial_number += 1       
-            
-            _amount_paid = 0
-            _status = False
-            _location = 99
-            if n.transaction_payment_type_id == 2: # if against invoice
-                _amount_paid = n.amount_paid
-                _status = True
-                _location = 1
-
-            db.General_Ledger.insert(
-                transaction_prefix_id = _ser.id,
-                transaction_no = _ser.serial_number,
-                transaction_date = _id.transaction_reference_date,
-                transaction_payment_type = n.transaction_payment_type.transaction_payment_type,
-                transaction_type = _id.account_voucher_transaction_type,
-                location = _location,
-                transaction_type_ref = _id.account_voucher_transaction_code,
-                transaction_date_entered = request.now,
-                department = 13,
-                type = _id.account_voucher_transaction_type,
-                reference_no = str(_id.account_voucher_transaction_code) + str(n.account_reference),
-                account_reference_no = n.account_reference,
-                account_code = n.account_code,
-                description = n.description,
-                credit = n.amount_paid,
-                debit = 0,
-                amount_paid = _amount_paid,
-                gl_entry_ref = _voucher_no_serial,
-                batch_posting_seq = _seq,
-                entrydate = request.now,
-                bank_code = _id.account_code,
-                status = _status
-            )
-            _row.update_record()
-
-        _ser.update_record()
-    elif _gen:
-        response.js = "alertify.error('RV Already posted.')"
-
-    # --------------- POSTING ON GEN. LEDGER ---------------
-
-# -------------------   R E C E I P T  V O  U C H E R   ----------------------
-# --------------------   RV  C O N F I R M A T I O N   -----------------------
-def get_rv_confirmation_grid():
-    ctr = 0
-    row = []
-    _vn = db(db.Account_Voucher_Type.account_voucher_transaction_type == 21).select().first()
-    head = THEAD(TR(TD('#'),TD('Date'),TD('VOU.No.'),TD('Type'),TD('Code'),TD('Total Amount'),TD('Status'),TD('Required Action'),TD()),_class='bg-red')
-    for n in db((db.Account_Voucher_Request.created_by == auth.user_id) & (db.Account_Voucher_Request.account_payment_mode_id == 4)).select(orderby = db.Account_Voucher_Request.id):
-        ctr += 1
-        work_lnk = A(I(_class='fas fa-user-plus'), _title='View/Update/Cancel', _type='button  ', _role='button', _class='btn btn-icon-toggle' , _href=URL('account_transaction','post_receipt_voucher',args = n.id, extension = False))
-        prin_lnk = A(I(_class='fas fa-print'), _title='View/Update/Cancel', _type='button  ', _role='button', _class='btn btn-icon-toggle', _target='blank', _href=URL('account_transaction_reports','get_account_voucher_request_id',args = n.id, extension = False))
-        btn_lnk = DIV(work_lnk, prin_lnk)
-        row.append(TR(
-            TD(ctr),
-            TD(n.transaction_reference_date),
-            TD(_vn.account_voucher_transaction_code,n.voucher_no),
-            TD(_vn.account_voucher_transaction_type),
-            TD(_vn.account_voucher_transaction_code),
-            TD(locale.format('%.3F', n.total_amount or 0, grouping = True),_align='right'),
-            TD(n.status_id.description),
-            TD(n.status_id.required_action),
-            TD(btn_lnk)))
-    body = TBODY(*[row])
-    table = TABLE([head, body],_class='table')
-    return dict(table = table)
-
-def post_receipt_voucher_confirmation():
-    _total_amount = 0
-    ticket_no_id = id_generator()
-    session.ticket_no_id = ticket_no_id
-    _vn = db(db.Account_Voucher_Type.account_voucher_transaction_type == 21).select().first()
-    db.Account_Voucher_Request.voucher_no.default = _vn.voucher_serial_no + 1
-    db.Account_Voucher_Request.status_id.default = 9
-    if request.args(0):
-        _id = db(db.Account_Voucher_Request.id == request.args(0)).select().first()
-    form = SQLFORM(db.Account_Voucher_Request, request.args(0))    
-    if form.process(onvalidation = validate_post_receipt_voucher).accepted:
-        response.flash = 'RECORD SAVE'
-        if not request.args(0):
-            _vn.voucher_serial_no += 1
-            _id = db(db.Account_Voucher_Request.created_by == auth.user_id).select().last()
-            for n in db(db.Account_Voucher_Transaction_Request.ticket_no_id == form.vars.ticket_no_id).select():
-                _gl = db((db.General_Ledger.account_code == n.account_code_id) & (db.General_Ledger.account_reference_no == n.account_reference) & (db.General_Ledger.debit > 0)).select().first()
-                n.update_record(account_voucher_request_id = _id.id)
-                _gl.update_record(prepared = True)
-            _vn.update_record()
-            _total_amount = db.Account_Voucher_Transaction_Request.amount_paid.sum().coalesce_zero()
-            _total_amount = db(db.Account_Voucher_Transaction_Request.ticket_no_id == form.vars.ticket_no_id).select(_total_amount).first()[_total_amount]            
-            _id.update_record(total_amount = _total_amount)
-        elif request.args(0):            
-            _id = db(db.Account_Voucher_Request.id == request.args(0)).select().first()
-            for n in db(db.Account_Voucher_Transaction_Request.account_voucher_request_id == request.args(0)).select():
-                _gl = db((db.General_Ledger.account_code == n.account_code_id) & (db.General_Ledger.account_reference_no == n.account_reference) & (db.General_Ledger.debit > 0)).select().first()
-                n.update_record(account_voucher_request_id = _id.id)            
-                _gl.update_record(prepared = True)
-            _total_amount = db.Account_Voucher_Transaction_Request.amount_paid.sum().coalesce_zero()
-            _total_amount = db(db.Account_Voucher_Transaction_Request.account_voucher_request_id == request.args(0)).select(_total_amount).first()[_total_amount]
-            _id.update_record(total_amount = _total_amount)
-        redirect(URL('account_transaction','get_receipt_voucher_grid'))
-    elif form.errors:
-        response.flash = 'FORM HAS ERROR'
-    return dict(form = form, ticket_no_id = ticket_no_id)
-
-def validate_post_receipt_voucher_confirmation_transaction(form):
-    _id = db(db.Account_Voucher_Transaction_Request.account_reference == request.vars.account_reference).select().first()
-
-
-@auth.requires_login()
-def post_receipt_voucher_confirmation_transaction():
-    db.Account_Voucher_Transaction_Request.ticket_no_id.default = session.ticket_no_id
-    _ticket_no_ref = session.ticket_no_id
-    form = SQLFORM.factory(db.Account_Voucher_Transaction_Request)
-    if form.process(onvalidation = validate_post_receipt_voucher_confirmation_transaction).accepted:
-        # if request.args(0):
-        #     _av = db(db.Account_Voucher_Request.id == int(request.args(0))).select().first()
-        #     _total_amount = db.Account_Voucher_Transaction_Request.amount_paid.sum().coalesce_zero()
-        #     _total_amount = db(db.Account_Voucher_Transaction_Request.account_voucher_request_id == request.args(0)).select(_total_amount).first()[_total_amount]
-        #     _av.update_record(total_amount = _total_amount)
-        response.js = "$('#AVTtbl').get(0).reload();"
-    elif form.errors:
-        response.flash = None
-        response.js = "alertify.error('%s')" %(form.errors)
-    ctr = _total_amount = 0
-    row = []    
-    head = THEAD(TR(TD('#'),TD('AC Code'),TD('Account Name'),TD('Dept.'),TD('Acct.Ref.'),TD('Description'),TD('Amount'),TD('')),_class='bg-red')
-    _query = db(db.Account_Voucher_Transaction_Request.ticket_no_id == _ticket_no_ref).select()    
-    if request.args(0):
-        _query = db(db.Account_Voucher_Transaction_Request.account_voucher_request_id == request.args(0)).select()
-    for n in _query:
-        ctr += 1
-        dele_lnk = A(I(_class='fas fa-trash'), _title='Delete Row', _type='button  ', _role='button', _class='btn btn-icon-toggle delete' , callback=URL('account_transaction','delete_account_transaction_id',args = n.id, extension = False))
-        btn_lnk = DIV(dele_lnk)
-        _am = dc(dc.Master_Account.account_code == n.account_code_id).select().first()
-        _serial = db(db.Account_Voucher_Type.account_voucher_transaction_type == 21).select().first()
-        _total_amount += float(n.amount_paid or 0)
-        row.append(TR(
-            TD(ctr),            
-            TD(n.account_code_id),
-            TD(_am.account_name),
-            TD(n.dept_code_id.department_code),
-            TD(n.account_reference),
-            TD(n.description),
-            TD(locale.format('%.3F', n.amount_paid or 0, grouping = True), _align='right'),
-            TD(btn_lnk),
-        ))
-    body = TBODY(*row)
-    foot = TFOOT(TR(
-        TD(),TD(),TD(),TD(),TD(),TD('Total Amount'),TD(locale.format('%.3F', _total_amount or 0, grouping = True), _align ='right'),TD()
-    ))
-    table = TABLE([head, body, foot], _class='table',_id='AVTtbl')
-    return dict(form = form, table = table)
-
-# --------------------   RV  C O N F I R M A T I O N   -----------------------
-
-
 @auth.requires_login()
 def get_business_unit_grid():
     row = []    
@@ -641,25 +88,6 @@ def get_business_unit_grid():
     tbody = TBODY(*row)
     table = TABLE(*[thead, tbody], _class='table table-hover')
     return dict(form = form, table=table)    
-
-@auth.requires_login()
-def get_payment_voucher_grid():
-    row = []
-    ctr = 0
-    head = THEAD(TR(TH('#'),TH('Date'),TH('Receipt No.'),TH('Name'),TH('Amount'),TH('Status'),TH('Action')))
-    for n in db().select(db.acctvou.ALL):
-        ctr += 1
-        row.append(TR(
-            TD(ctr),
-            TD(n.refdte),
-            TD(n.refno),
-            TD(n.person),
-            TD(),
-            TD(),
-            TD()))
-    body = TBODY(*row)
-    table = TABLE(*[head, body],_class='table')
-    return dict(table = table)
 
 @auth.requires_login()
 def put_payment_voucher_form():
@@ -734,42 +162,6 @@ def get_department_head_grid():
     table = TABLE(*[thead, tbody], _class='table table-hover')
     return dict(form = form, table=table)   
 
-# @auth.requires(lambda: auth.has_membership('BACK OFFICE DEPARTMENT') | auth.has_membership('ACCOUNTS') | auth.has_membership('DEPARTMENT MANAGERS') |  auth.has_membership('ACCOUNTS MANAGER')|  auth.has_membership('MANAGEMENT') |  auth.has_membership('ROOT'))
-def get_debit_credit_note_grid():
-    _headD = db(db.Department_Head_Assignment.users_id == auth.user_id).select().first()
-    row = []
-    ctr = 0
-    head = THEAD(TR(TH('#'),TH('Date'),TH('Serial Note'),TH('Account Code'),TH('Department'),TH('Business Unit'),TH('Type'),TH('Amount',_style = "width:100px;"),TH('Status'),TH('Action Required'),TH('Action Control'),_class='bg-red'))
-    if auth.has_membership('ACCOUNTS MANAGER'):
-        _query = db(db.Debit_Credit.status_id == 1).select(db.Debit_Credit.ALL)
-    elif auth.has_membership('ACCOUNTS'):
-        _query = db((db.Debit_Credit.created_by == auth.user_id) & (db.Debit_Credit.status_id != 5)).select(db.Debit_Credit.ALL)
-    elif auth.has_membership('DEPARTMENT MANAGERS'):
-        _query = db((db.Debit_Credit.department_id == _headD.department_id) & (db.Debit_Credit.status_id == 3)).select(db.Debit_Credit.ALL)
-    elif auth.has_membership('MANAGEMENT') or auth.has_membership('ROOT'):
-        _query = db(db.Debit_Credit.status_id == 4).select(db.Debit_Credit.ALL)    
-
-    for n in _query:
-        ctr+=1
-        view_lnk = A(I(_class='fa fa-search'), _title='View Row', _type='button  ', _role='button', _class='btn btn-icon-toggle', _href=URL('account_transaction','get_debit_credit_note_id', args = n.id))
-        edit_lnk = A(I(_class='fa fa-user-edit'), _title='Edit Row', _type='button  ', _role='button', _class='btn btn-icon-toggle disabled')         
-        dele_lnk = A(I(_class='fa fa-trash'), _title='Delete Row', _type='button  ', _role='button', _class='btn btn-icon-toggle disabled', _href=URL('#', args = n.id))        
-        btn_lnk = DIV(view_lnk, edit_lnk, dele_lnk)
-        row.append(TR(
-            TD(ctr),
-            TD(n.transaction_date),
-            TD('DCN',n.serial_note),
-            TD(n.account_code),
-            TD(n.department_id.department_code,' - ',n.department_id.department_name),
-            TD(n.business_unit.business_name),
-            TD(n.transaction_type.upper()),
-            TD(n.currency_id.mnemonic, ' ', locale.format('%.2F',n.total_amount or 0, grouping = True), _align = 'right'),
-            TD(n.status_id.description),
-            TD(n.status_id.required_action),
-            TD(btn_lnk)))
-    body = TBODY(*row)
-    table = TABLE(*[head, body], _class='table')
-    return dict(table = table)
 
 @auth.requires_login()
 def post_debit_credit_note_form():
@@ -1175,4 +567,203 @@ def get_debit_credit_note_grid_reports():
 
 def id_generator():    
     return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6))
+# -------------------------------- BEGIN ---------------------------------
+# -------------------   ACCOUNT TRANSACTIONS GRID   ----------------------
+# ------------------------------------------------------------------------
+@auth.requires_login()
+def get_account_transaction_grid_id():
+    if int(request.args(0)) == 1:
+        header = 'Receipt Voucher Transaction Grid'
+        table = LOAD('account_transaction','get_receipt_voucher_grid.load', ajax = True, extension = False)
+    elif int(request.args(0)) == 2:
+        header = 'RV Confirmation Transaction Grid'
+        table = LOAD('account_transaction','get_rv_confirmation_grid.load', ajax = True, extension = False)
+    elif int(request.args(0)) == 3:
+        header = 'Payment Voucher Transaction Grid'
+        table = LOAD('account_transaction','get_payment_voucher_grid.load', ajax = True, extension = False)
+    elif int(request.args(0)) == 4:
+        header = 'Journal Voucher Transaction Grid'
+        table = LOAD('account_transaction','get_journal_voucher_grid.load', ajax = True, extension = False)
+    elif int(request.args(0)) == 5:
+        header = 'Debit/Credit Note Transaction Grid'
+        table = LOAD('account_transaction','get_debit_credit_note_grid.load', ajax = True, extension = False)
+    elif int(request.args(0)) == 6:
+        header = 'Account Reconciliation Transaction Grid'
+        table = LOAD('account_transaction','get_account_reconciliation_grid.load', ajax = True, extension = False)
 
+    return dict(header=header, table = table)
+
+@auth.requires_login()
+def get_receipt_voucher_grid():
+    ctr = 0
+    row = []
+    _vn = db(db.Account_Voucher_Type.account_voucher_transaction_type == 21).select().first()
+    head = THEAD(TR(TD('#'),TD('Date'),TD('Type'),TD('Code'),TD('Account Code'),TD('Account Reference'),TD('RVC Ref.'),TD('RVC Type'),TD('Total Amount'),TD('Created By'),TD('Status'),TD()),_class='bg-red')
+    for n in db(db.Receipt_Voucher_Header.status_id == 11).select(orderby = db.Receipt_Voucher_Header.id):
+        ctr += 1
+        prin_lnk = A(I(_class='fas fa-print'), _title='Print Record', _type='button  ', _role='button', _class='btn btn-icon-toggle disabled', _target='blank', _href=URL('account_transaction_reports','get_account_voucher_request_id',args = n.id, extension = False))
+        btn_lnk = DIV(prin_lnk)
+        row.append(TR(
+            TD(ctr),
+            TD(n.transaction_reference_date),
+            TD(n.account_voucher_transaction_type),
+            TD(n.account_voucher_transaction_code),            
+            TD(n.account_code),            
+            TD(n.account_reference),
+            TD(n.rv_confirmation_reference),
+            TD(n.receipt_voucher_confirmation_type_id),
+
+            TD(locale.format('%.2F', n.total_amount or 0, grouping = True),_align='right'),
+            TD(n.requested_by),
+            # TD(n.requested_by.first_name,' ',n.requested_by.last_name[0],'.'),            
+            TD(n.status_id.required_action),
+            TD(btn_lnk)))
+    body = TBODY(*[row])
+    table = TABLE([head, body],_class='table table-hover',_id='TBLAct')
+    return table
+
+def get_rv_confirmation_grid():
+    ctr = 0
+    row = []
+    head = THEAD(TR(TD('#'),TD('Date'),TD('Type'),TD('Code'),TD('Account Code'),TD('Account Reference'),TD('Total Amount'),TD('Created By'),TD('Status'),TD()),_class='bg-red')
+    for n in db(db.Receipt_Voucher_Confirmation.status_id == 11).select(orderby = db.Receipt_Voucher_Confirmation.id):
+        ctr += 1
+        prin_lnk = A(I(_class='fas fa-print'), _title='Print Record', _type='button  ', _role='button', _class='btn btn-icon-toggle disabled', _target='blank', _href=URL('account_transaction_reports','get_account_voucher_request_id',args = n.id, extension = False))
+        btn_lnk = DIV(prin_lnk)
+        row.append(TR(
+            TD(ctr),
+            TD(n.transaction_reference_date),
+            TD(n.account_voucher_transaction_type),
+            TD(n.account_voucher_transaction_code),
+            TD(n.account_code),
+            TD(n.account_reference),
+            TD(locale.format('%.2F', n.total_amount or 0, grouping = True),_align='right'),
+            TD(n.created_by),            
+            TD(n.status_id.required_action),
+            TD(btn_lnk)))
+    body = TBODY(*[row])
+    table = TABLE([head, body],_class='table table-hover')
+    return table
+
+@auth.requires_login()
+def get_payment_voucher_grid():
+    ctr = 0
+    row = []
+    head = THEAD(TR(TD('#'),TD('Date'),TD('Type'),TD('Code'),TD('Payment Vou. #'),TD('Account Code'),TD('Payee'),TD('Payment Mode'),TD('Cheque No.'),TD('Cheque Dated'),TD('Inv #'),TD('Total Amount'),TD('Created By'),TD('Status'),TD()),_class='bg-red')
+    _query = db().select(orderby = db.Payment_Voucher_Header.id)
+    for n in _query:
+        ctr += 1
+        prin_lnk = A(I(_class='fas fa-print'), _title='Print', _type='button  ', _role='button', _class='btn btn-icon-toggle disabled', _target='blank', _href=URL('workflow_payment_voucher_reports','get_payment_voucher_no_id',args = n.payment_voucher_no, extension = False))    
+        btn_lnk = DIV(prin_lnk)
+        row.append(TR(
+            TD(ctr),
+            TD(n.transaction_reference_date),
+            TD(n.account_voucher_transaction_type),
+            TD(n.account_voucher_transaction_code),
+            TD(n.account_voucher_transaction_code,n.payment_voucher_no),
+            TD(n.account_code),
+            TD(n.payee),
+            TD(n.account_payment_mode_id.account_voucher_payment_name),
+            TD(n.cheque_no),
+            TD(n.cheque_dated),
+            TD(n.custom_invoice_no),
+            TD(locale.format('%.2F', n.total_amount or 0, grouping = True),_align='right'),
+            TD(n.requested_by),
+            TD(n.status_id.required_action),
+            TD(btn_lnk)))
+    body = TBODY(*[row])
+    table = TABLE([head, body],_class='table')
+    return table
+
+@auth.requires_login()
+def get_journal_voucher_grid():
+    ctr = 0
+    row = []
+    head = THEAD(TR(TD('#'),TD('Date'),TD('Type'),TD('Code'),TD('Account Ref.'),TD('Total Amount'),TD('Created By'),TD('Status'),TD()),_class='bg-red')    
+    _query = db(db.Journal_Voucher_Header.status_id == 19).select(orderby = db.Journal_Voucher_Header.id)
+    for n in _query:
+        ctr += 1
+        prin_lnk = A(I(_class='fas fa-print'), _title='Print', _type='button  ', _role='button', _class='btn btn-icon-toggle disabled')
+        btn_lnk = DIV(prin_lnk)        
+        row.append(TR(
+            TD(ctr),
+            TD(n.transaction_reference_date),
+            TD(n.account_voucher_transaction_type),
+            TD(n.account_voucher_transaction_code),
+            TD(n.account_reference),            
+            TD(locale.format('%.2F',n.total_amount or 0, grouping = True),_align='right'),            
+            TD(n.requested_by),            
+            TD(n.status_id.required_action),
+            TD(btn_lnk)))
+    body = TBODY(*row)
+    table = TABLE(*[head, body], _class='table')
+    return table
+
+@auth.requires_login()
+def get_debit_credit_note_grid():
+    _headD = db(db.Department_Head_Assignment.users_id == auth.user_id).select().first()
+    row = []
+    ctr = 0
+    head = THEAD(TR(TH('#'),TH('Date'),TH('Serial Note'),TH('Account Code'),TH('Department'),TH('Business Unit'),TH('Type'),TH('Amount',_style = "width:100px;"),TH('Status'),TH('Action Required'),TH('Action Control'),_class='bg-red'))
+    if auth.has_membership('ACCOUNTS MANAGER'):
+        _query = db(db.Debit_Credit.status_id == 1).select(db.Debit_Credit.ALL)
+    elif auth.has_membership('ACCOUNTS'):
+        _query = db((db.Debit_Credit.created_by == auth.user_id) & (db.Debit_Credit.status_id != 5)).select(db.Debit_Credit.ALL)
+    elif auth.has_membership('DEPARTMENT MANAGERS'):
+        _query = db((db.Debit_Credit.department_id == _headD.department_id) & (db.Debit_Credit.status_id == 3)).select(db.Debit_Credit.ALL)
+    elif auth.has_membership('MANAGEMENT') or auth.has_membership('ROOT'):
+        _query = db(db.Debit_Credit.status_id == 4).select(db.Debit_Credit.ALL)    
+
+    for n in _query:
+        ctr+=1
+        view_lnk = A(I(_class='fa fa-search'), _title='View Row', _type='button  ', _role='button', _class='btn btn-icon-toggle', _href=URL('account_transaction','get_debit_credit_note_id', args = n.id))
+        edit_lnk = A(I(_class='fa fa-user-edit'), _title='Edit Row', _type='button  ', _role='button', _class='btn btn-icon-toggle disabled')         
+        dele_lnk = A(I(_class='fa fa-trash'), _title='Delete Row', _type='button  ', _role='button', _class='btn btn-icon-toggle disabled', _href=URL('#', args = n.id))        
+        btn_lnk = DIV(view_lnk, edit_lnk, dele_lnk)
+        row.append(TR(
+            TD(ctr),
+            TD(n.transaction_date),
+            TD('DCN',n.serial_note),
+            TD(n.account_code),
+            TD(n.department_id.department_code,' - ',n.department_id.department_name),
+            TD(n.business_unit.business_name),
+            TD(n.transaction_type.upper()),
+            TD(n.currency_id.mnemonic, ' ', locale.format('%.2F',n.total_amount or 0, grouping = True), _align = 'right'),
+            TD(n.status_id.description),
+            TD(n.status_id.required_action),
+            TD(btn_lnk)))
+    body = TBODY(*row)
+    table = TABLE(*[head, body], _class='table')
+    return table
+
+@auth.requires_login()
+def get_account_reconciliation_grid():
+    ctr = 0
+    row = []
+    head = THEAD(TR(TD('#'),TD('Date'),TD('Trnx No'),TD('Voucher No'),TD('Total Amount'),TD('Current Amount Recon.'),TD('Total Amount Recon.'),TD('Balanced'),TD('Requestd By'),TD('Status'),TD()),_class='bg-red')    
+    _query = db(db.Account_Reconciliation_Header.status_id == 22).select()
+    for n in _query:
+        ctr += 1
+        
+        view_lnk = A(I(_class='fas fa-search'), _title='View', _type='button  ', _role='button', _class='btn btn-icon-toggle', _target='blank', _href=URL('workflow_accounts_recon','get_account_reconciliation_id',args = n.id, extension = False))
+        prin_lnk = A(I(_class='fas fa-print'), _title='Reconcile RV', _type='button  ', _role='button', _class='btn btn-icon-toggle', _target='blank', _href=URL('account_reconciliation_reports','get_account_reconciliation_id',args = n.id, extension = False))
+        btn_lnk = DIV(view_lnk,prin_lnk)
+        row.append(TR(
+            TD(ctr),
+            TD(n.reconciliation_date),
+            TD('AR',n.reconciliation_transaction_no),            
+            TD('RV',n.voucher_no),            
+            TD(locale.format('%.2F', n.rv_amount or 0, grouping = True),_align='right'),
+            TD(locale.format('%.2F', n.reconciled_amount_entry or 0, grouping = True),_align='right'),
+            TD(locale.format('%.2F', n.total_reconciled_amount or 0, grouping = True),_align='right'),            
+            TD(locale.format('%.2F', n.rv_balanced_amount or 0, grouping = True),_align='right'),
+            TD(n.requested_by.first_name,' ',n.requested_by.last_name[0],'.'),            
+            TD(n.status_id.required_action),
+            TD(btn_lnk)))
+    body = TBODY(*[row])
+    table = TABLE([head, body],_class='table table-striped table-hover',_id='TBLAct')
+    return table
+
+# ----------------------------------------------------------------------------
+# -------------------   ACCOUNT TRANSACTIONS GRID   --------------------------
+# -------------------------------- END ---------------------------------------

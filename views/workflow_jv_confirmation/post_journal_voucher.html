@@ -1,0 +1,116 @@
+{{extend 'layout.html'}}
+
+<section class="content">
+    <div class="callout callout-info">
+        <h4>In progress...</h4>
+        <p>under development and testing...</p>
+    </div>
+    <div class="progress progress-sm active">
+        <div class="progress-bar progress-bar-success progress-bar-striped" role="progressbar" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100" style="width: 90%">
+        <span class="sr-only">20% Complete</span>
+        </div>
+    </div>
+
+    <div class="row">                
+        <div class="col-md-9">
+            {{=LOAD('workflow_jv_confirmation','post_journal_voucher_transaction.load', args = request.args(0), ajax = True, extension = False, target = 'JVTtbl')}}
+        </div>
+        <div class="col-md-3">
+            <div class="box box-danger">
+                <div class="box-header with-border">
+                    <h3 class="box-title">Journal Voucher Form</h3>
+                </div>
+                <div class="box-body">
+                    {{=form.custom.begin}}                   
+                    <div class="form-group">
+                        <label>Financial Year {{=request.now.year}}</label>
+                    </div>          
+                    <div id="journal_voucher_id">
+                        <div class="row">
+                            <div class="form-group">
+                                <div class="col-lg-6">                              
+                                    <label>Journal Voucher No</label>
+                                    {{=form.custom.widget.journal_voucher_no}}
+                                </div>                  
+                                <div class="col-lg-6">      
+                                    <label>Date</label>
+                                    {{if request.args(0):}}
+                                        <input class="form-control" id="Account_Voucher_Request_payment_voucher_date" name="payment_voucher_date" type="date" value="{{=_id.journal_voucher_date}}">
+                                    {{else:}}
+                                        <input class="form-control" id="Account_Voucher_Request_payment_voucher_date" name="payment_voucher_date" type="date" value="{{=request.now.date()}}">
+                                    {{pass}}                                
+                                </div>                  
+                            </div>                    
+                        </div>
+                        <br/>
+                    </div>                    
+                    <div class="row">
+                        <div class="form-group">
+                            <div class="col-lg-6">                              
+                                <label>JV Req. No</label>
+                                {{=form.custom.widget.journal_voucher_request_no}}    
+                            </div>                  
+                            <div class="col-lg-6">      
+                                <label>Date</label>
+                                {{if request.args(0):}}
+                                    <input class="form-control" id="Account_Voucher_Request_transaction_reference_date" name="transaction_reference_date" type="date" value="{{=_id.transaction_reference_date}}">
+                                {{else:}}
+                                    <input class="form-control" id="Account_Voucher_Request_transaction_reference_date" name="transaction_reference_date" type="date" value="{{=request.now.date()}}">
+                                {{pass}}
+                            </div>                  
+                        </div>
+                    </div>
+                    </br>
+                    <div class="form-group">
+                        <label>Journal Voucher Type</label>
+                        {{=form.custom.widget.journal_voucher_type_id}}    
+                    </div>         
+                    <div class="form-group">
+                        <label>Status</label>
+                        {{=form.custom.widget.status_id}}    
+                    </div>      
+                    <div class="form-group">
+                        <label>Remarks</label>
+                        {{=form.custom.widget.remarks}}    
+                    </div>                                              
+                    {{if (auth.has_membership(role = 'ACCOUNTS')):}}
+                        <input class="btn btn-block btn-primary btn-flat" type="button" value="Confirm" onclick="Account_Confirmation_Function()">
+                    {{pass}}                    
+                    <input class="btn btn-block btn-danger btn-flat" type="button" value="Exit" id="btnExit" onclick="ExitFunc()">
+                    {{=form.custom.end}}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>             
+
+<script>
+
+    $(document).ready(function(){
+        $("#Journal_Voucher_Header_Request_journal_voucher_no, #Account_Voucher_Request_payment_voucher_date, #Account_Voucher_Request_transaction_reference_date, #Journal_Voucher_Header_Request_remarks").prop('readonly', true);
+
+        $('#Journal_Voucher_Header_Request_journal_voucher_type_id option:not(:selected)').attr('disabled',true);
+        $('#Journal_Voucher_Header_Request_status_id option:not(:selected)').attr('disabled',true);
+
+        $("#Journal_Voucher_Header_Request_journal_voucher_request_no").prop('readonly', true);
+        $("#Payment_Voucher_Request_account_code").prop('readonly', true);
+        $("#account_name").prop('readonly', true);
+        $('#Payment_Voucher_Request_account_payment_mode_id option[value="1"]').attr("disabled", "disabled");
+        
+
+
+    })
+
+    function Account_Confirmation_Function(){
+        alertify.confirm('JV Confirmation', 'Confirm Journal Voucher?', 
+            function(){
+                ajax("{{=URL('workflow_jv_confirmation','patch_jv_confirmation_id', args = [1, request.args(0)])}}")
+            }
+            , function(){ alertify.error('Cancel')});
+    }
+
+    function ExitFunc(){
+        window.location.replace('{{=URL('workflow_jv_confirmation','get_jv_confirmation_grid')}}'); 
+    }
+
+</script>

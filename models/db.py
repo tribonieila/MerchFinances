@@ -156,6 +156,7 @@ auth.enable_record_versioning(db)
 
 db = DAL("mssql4://SA:M3rch2018@localhost:1433/m3rch_finances_db?driver={ODBC Driver 17 for SQL Server}", pool_size=0) # production
 dc = DAL("mssql4://SA:M3rch2018@localhost:1433/m3rch_inv_db?driver={ODBC Driver 17 for SQL Server}", migrate = False, pool_size=0)
+d2 = DAL("mssql4://SA:M3rch2018@10.128.4.21:1433/m3rch_finances_db?driver={ODBC Driver 17 for SQL Server}", migrate = False, pool_size=0)
 # auth = Auth(globals(),db)
 auth = Auth(db, cas_provider='http://localhost:4000/welcome/default/user/cas')
 

@@ -20,21 +20,34 @@
                     {{=form.custom.begin}}
                     <div class="form-horizontal">
                         <div class="form-group">
-                            <label class="col-sm-5 control-label">Voucher Serial No</label>
-                            <div class="col-sm-7">{{=form.custom.widget.voucher_serial_no}}</div>
+                            <label class="col-sm-5 control-label">Financial Year</label>
+                            <div class="col-sm-7">                                
+                                <input class="form-control" type="text" value="{{=request.now.year}}" readonly>
+                            </div>
                         </div>
+
                         <div class="form-group">
-                            <label class="col-sm-5 control-label">Transaction Type</label>
-                            <div class="col-sm-7">{{=form.custom.widget.account_voucher_transaction_type}}</div>
+                            <label class="col-sm-5 control-label">Transaction Prefix</label>
+                            <div class="col-sm-7">{{=form.custom.widget.transaction_prefix}}</div>
                         </div>
 
                         <div class="form-group">
                             <label class="col-sm-5 control-label">Transaction Code</label>
                             <div class="col-sm-7">{{=form.custom.widget.account_voucher_transaction_code}}</div>
                         </div>
+
+                        <div class="form-group">
+                            <label class="col-sm-5 control-label">Transaction Type</label>
+                            <div class="col-sm-7">{{=form.custom.widget.account_voucher_transaction_type}}</div>
+                        </div>
+
                         <div class="form-group">
                             <label class="col-sm-5 control-label">Transaction Name</label>
                             <div class="col-sm-7">{{=form.custom.widget.account_voucher_transaction_name}}</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-5 control-label">Voucher Serial No</label>
+                            <div class="col-sm-7">{{=form.custom.widget.voucher_serial_no}}</div>
                         </div>
 
                         <div class="form-group">

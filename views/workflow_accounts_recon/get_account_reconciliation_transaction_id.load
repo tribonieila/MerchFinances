@@ -1,0 +1,5 @@
+{{=table}}
+<script>
+    $(document).ready(function(){
+    })
+</script>

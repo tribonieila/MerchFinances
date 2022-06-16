@@ -1,0 +1,135 @@
+{{extend 'layout.html'}}
+
+<section class="content">
+
+    <div class="row">
+        <div class="col-md-10">
+			<div class="box">
+				<div class="box-header with-border">
+					<h3 class="box-title">Account Reconciliation Transaction Grid</h3>
+                    <div class="box-tools pull-right"><button type="button" onclick="btnEntry()" class="btn btn-box-tool"><i class="fa fa-user-plus"></i></button></div>                    
+                </div>				
+                <div class="box-body" id="box_entry">
+                    <div class="container">
+                        <div class="justify-content-center">
+                            <div class="col-md-6">
+                                <div class="input-group input-group-sm">
+                                    <input type="text" class="form-control" name="account_code_ref" id="account_code_ref">
+                                    <span class="input-group-btn">
+                                    <button type="button" onclick="btnNewAccount()" class="btn btn-info btn-flat">+</button>
+                                    </span>
+                                </div>        
+                            </div>
+                            <div class="col-md-6">
+                                {{=form2.custom.begin}}
+                                {{=form2.custom.widget.customer_group_code_id}}
+                                {{=form2.custom.begin}}
+                            </div>
+                        </div>                    
+    
+                    </div>
+                </div>
+				<div class="box-body">
+					{{=LOAD('workflow_accounts_recon','post_account_reconciliation_transaction.load', args = request.args(0), ajax = True, extension = False, target = 'ARTtbl')}}
+				</div>
+			</div>            
+            
+        </div>
+        <div class="col-md-2">
+            <div class="box box-danger">
+                <div class="box-header with-border">
+                    <h3 class="box-title">Account Rec. Form</h3>
+                </div>
+                <div class="box-body">
+                    {{=form.custom.begin}}
+                    <div class="row">
+                        <div class="form-group">
+                            <div class="col-lg-6">
+                                <label class="control-label">Transaction No.</label>
+                                {{=form.custom.widget.reconciliation_transaction_no}}    
+                            </div>
+                            <div class="col-lg-6">
+                                <label class="control-label">Transaction Date</label>
+                                
+                                <input class="form-control" id="Account_Reconciliation_Header_reconciliation_date" name="reconciliation_date" type="date" value="{{=request.now.date()}}">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+
+                    </div>
+                    </br>
+                    <div class="form-group">
+						<label class="control-label">RV No.</label>
+						{{=form.custom.widget.voucher_no}}
+					</div>
+					<div class="form-group">
+						<label class="control-label">RV Total Amount To Recon.</label>
+						{{=form.custom.widget.rv_amount}}
+					</div>
+					<div class="form-group">
+						<label class="control-label">Total Reconciled Amount</label>
+						{{=form.custom.widget.total_reconciled_amount}}
+					</div>
+					<div class="form-group">
+						<label class="control-label">Balance Amount to Reconcile</label>
+						{{=form.custom.widget.rv_balanced_amount}}
+					</div>
+                    <!-- bal = rv - total recon -->
+                    <div class="form-group">
+						<label class="control-label">Status</label>
+						{{=form.custom.widget.status_id}}
+					</div>                    
+                    <button type="button" class="btn btn-block btn-primary btn-flat" id="idSubmit" onclick="btnSubmit()">Submit</button>
+                    <button type="button" class="btn btn-block btn-danger btn-flat" onclick="btnExit()">Exit</button>
+                    {{=form.custom.end}}                         
+                </div>
+            </div>
+        </div>
+    </div>
+</section>             
+
+<script>
+    $(document).ready(function(){
+        // $("#idSubmit").attr("disabled","disabled");
+        $("#box_entry").hide();
+        $("#Account_Reconciliation_Header_reconciliation_transaction_no, #Account_Reconciliation_Header_reconciliation_date").prop('readonly', true);
+        $("#Account_Reconciliation_Header_voucher_no, #Account_Reconciliation_Header_rv_amount").prop('readonly', true);
+        $("#Account_Reconciliation_Header_total_reconciled_amount, #Account_Reconciliation_Header_rv_balanced_amount").prop('readonly', true);
+        
+        $("#Account_Reconciliation_Header_status_id").change(function(){
+            if ($("#Account_Reconciliation_Header_status_id").val() != "") {
+                $("#idSubmit").removeAttr("disabled");
+            } else {                
+                $("#idSubmit").attr("disabled","disabled");
+            }
+        });
+        $("#no_table_customer_group_code_id").change(function(){
+            alertify.confirm('Account Reconciliation', 'Add Group Account Entries?', function(){                        
+                ajax("{{=URL('workflow_accounts_recon','patch_receipt_voucher_transaction_id', args = [4, request.args(0)])}}", ['customer_group_code_id'])
+            }, function(){ alertify.error('Cancel')});                                    
+        });
+    })
+
+    function btnSubmit(){
+        alertify.confirm('Account Reconciliation', 'Submit Account For Reconciliation?', function(){                        
+            ajax("{{=URL('workflow_accounts_recon','post_account_reconciliation_header', args = request.args(0))}}",['reconciliation_date','voucher_no','rv_amount','total_reconciled_amount','rv_balanced_amount','status_id']);            
+        }
+            , function(){ alertify.error('Cancel')});
+    }
+
+    function btnExit(){
+        ajax("{{=URL('workflow_accounts_recon','patch_account_reconcilation_transactions_id', args = [1, request.args(0)])}}")
+        // window.location.href="{{=URL('workflow_accounts_recon','get_pending_rv_reconciliation_grid')}}"
+    }
+    function btnEntry(){
+        $("#box_entry").toggle("slow");
+    }
+    function btnNewAccount(){
+        ajax("{{=URL('workflow_accounts_recon','patch_receipt_voucher_transaction_id', args = [3,request.args(0)])}}", ['account_code_ref'])
+    }
+
+    function btnGroupAccount(){
+        console.log("btnGroupAccount")
+    }
+</script>

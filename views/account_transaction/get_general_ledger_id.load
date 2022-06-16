@@ -1,0 +1,11 @@
+{{=table}}        
+<script>
+    $(document).ready(function(){        
+        $("#example").DataTable({
+            "lengthChange": false
+            // "paging":   false,
+            // "ordering": false,
+            // "info":     false
+        });
+    });
+</script>

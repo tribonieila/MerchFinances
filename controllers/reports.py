@@ -84,6 +84,7 @@ def patch_account_card():
     _id = db(db.General_Ledger.account_code == request.vars.account_code).select().first()
     response.js = "alertify.error('%s Not found!')" % (request.vars.account_code)
     if _id:        
+        session.year = request.vars.year
         session.account_code = request.vars.account_code
         session.type = request.vars.type
         session.dept_code_id = request.vars.dept_code_id
@@ -106,17 +107,19 @@ def load_account_card_grid():
         if _account_name.account_sub_group_id:
             _sub_group = str(_account_name.account_sub_group_id.account_group_name) +  ' - '
         _account_name = _sub_group,_account_name.account_name, ', ', SPAN(_account_name.account_code,_class='text-muted')        
-    _opening_balanced = opening_balance(session.account_code, session.dept_code_id)
-    _credit_balanced = credit_balance(session.account_code, session.dept_code_id)
+    _opening_balanced = opening_balance(session.year, session.account_code, session.dept_code_id)
+    _closing_balanced = closing_balance(session.year, session.account_code, session.dept_code_id)
 
     head = THEAD(
-        TR(TD('',_colspan='6'),TD(),TD(B('Opening Balance for department ', session.dept_code_id,' : ',locale.format('%.3F',_opening_balanced or 0, grouping = True)),_align='right',_colspan='4')),
-        TR(TD(_account_name,_colspan='6'),TD(),TD(B('Opening Balance for all department : ',locale.format('%.3F',total_opening_balance(session.account_code) or 0, grouping = True)),_align='right',_colspan='4')),
+        TR(TD('',_colspan='6'),TD(),TD(B('Opening Balance for department ', session.dept_code_id,' : ',locale.format('%.2F',_opening_balanced or 0, grouping = True)),_align='right',_colspan='4')),
+        TR(TD(_account_name,_colspan='6'),TD(),TD(B('Opening Balance for all department : ',locale.format('%.2F',total_opening_balance(session.year, session.account_code) or 0, grouping = True)),_align='right',_colspan='4')),
         TR(TD('#'),TD('Date'),TD('TXN Reference'),TD('Type'),TD('Dept.'),TD('Loc.'),TD('A/C Reference'),TD('Description'),TD('Debit'),TD('Credit'),TD('Balance'),_class='bg-red'))   
-    
-    _query = db((db.General_Ledger.account_code == session.account_code) & (db.General_Ledger.department == session.dept_code_id) &  (db.General_Ledger.transaction_date >= session.start_date) & (db.General_Ledger.transaction_date <= session.end_date)).select()              
     if session.entries == 'N':
         _query = db((db.General_Ledger.account_code == session.account_code) & (db.General_Ledger.department == session.dept_code_id) &  (db.General_Ledger.transaction_date >= session.start_date) & (db.General_Ledger.transaction_date <= session.end_date) & (db.General_Ledger.debit > 0) & (db.General_Ledger.credit > 0)).select()                  
+    elif session.dept_code_id == '':
+        _query = db((db.General_Ledger.account_code == session.account_code) &  (db.General_Ledger.transaction_date >= session.start_date) & (db.General_Ledger.transaction_date <= session.end_date) & ((db.General_Ledger.debit > 0) | (db.General_Ledger.credit > 0))).select()
+    else:
+        _query = db((db.General_Ledger.account_code == session.account_code) & (db.General_Ledger.department == session.dept_code_id) &  (db.General_Ledger.transaction_date >= session.start_date) & (db.General_Ledger.transaction_date <= session.end_date)).select()              
     for n in _query:
         ctr += 1
         _balance += n.debit - n.credit        
@@ -131,13 +134,13 @@ def load_account_card_grid():
             TD(n.location),
             TD(n.transaction_type_ref,n.account_reference_no),            
             TD(n.description),            
-            TD(locale.format('%.3F',n.debit or 0, grouping = True),_align='right'),
-            TD(locale.format('%.3F',n.credit or 0, grouping = True),_align='right'),            
-            TD(locale.format('%.3F',_balance or 0, grouping = True),_align='right')))     
+            TD(locale.format('%.2F',n.debit or 0, grouping = True),_align='right'),
+            TD(locale.format('%.2F',n.credit or 0, grouping = True),_align='right'),            
+            TD(locale.format('%.2F',_balance or 0, grouping = True),_align='right')))     
     body = TBODY(*row)
     footer = TFOOT(
-        TR(TD(B('Closing Balance for department ', session.dept_code_id,' as of ',request.now.date(),' : ', locale.format('%.3F',_credit_balanced or 0, grouping = True)), _colspan='8'),TD(locale.format('%.3F',_debit or 0, grouping = True),_class='bg-gray-active color-palette', _align='right'),TD(locale.format('%.3F',_credit or 0, grouping = True),_class='bg-gray-active color-palette',_align='right'),TD(locale.format('%.3F',_balance or 0, grouping = True),_class='bg-gray-active color-palette',_align='right')),
-        TR(TD(B('Closing Balance for all department as of ',request.now.date(),' : ',locale.format('%.3F',total_credit_balance(session.account_code) or 0, grouping = True)), _colspan='8'),TD(),TD(),TD()))
+        TR(TD(B('Closing Balance for department ', session.dept_code_id,' as of ',request.now.date(),' : ', locale.format('%.2F',_closing_balanced or 0, grouping = True)), _colspan='8'),TD(locale.format('%.2F',_debit or 0, grouping = True),_class='bg-gray-active color-palette', _align='right'),TD(locale.format('%.2F',_credit or 0, grouping = True),_class='bg-gray-active color-palette',_align='right'),TD(locale.format('%.2F',_balance or 0, grouping = True),_class='bg-gray-active color-palette',_align='right')),
+        TR(TD(B('Closing Balance for all department as of ',request.now.date(),' : ',locale.format('%.2F',total_closing_balance(session.year, session.account_code) or 0, grouping = True)), _colspan='8'),TD(),TD(),TD()))
     table = TABLE(*[head, body, footer], _class='table table-striped table-hover', _id="ACtbl")        
     if session.type == 'S':
         ctr = _balance = 0

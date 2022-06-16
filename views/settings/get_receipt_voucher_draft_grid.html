@@ -6,7 +6,9 @@
                 <h3 class="box-title">Receipt Voucher Transaction Draft Grid</h3>
             </div>
             <div class="box-body table-responsive">                
-                {{=table}}                
+                {{=LOAD('settings','load_receipt_voucher_request.load')}}
+                {{=LOAD('settings','load_receipt_voucher_header.load')}}
+                {{=LOAD('settings','load_receipt_voucher_confirmation.load')}}
             </div>
         </div>
     </div>

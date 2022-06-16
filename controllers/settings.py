@@ -1,7 +1,19 @@
 @auth.requires(lambda: auth.has_membership('ACCOUNTS') |  auth.has_membership('ACCOUNTS MANAGER') | auth.has_membership(role = 'MANAGEMENT') | auth.has_membership('ROOT'))        
-def get_receipt_voucher_draft_grid():
-    table = SQLFORM.smartgrid(db.Account_Voucher_Request)
+def get_receipt_voucher_draft_grid():    
+    return dict()
+
+def load_receipt_voucher_request():
+    table = SQLFORM.smartgrid(db.Payment_Voucher_Request)
     return dict(table = table)
+
+def load_receipt_voucher_header():
+    table = SQLFORM.smartgrid(db.Payment_Voucher_Header)
+    return dict(table = table)   
+
+def load_receipt_voucher_confirmation():
+    table = SQLFORM.smartgrid(db.Receipt_Voucher_Confirmation)
+    return dict(table = table)
+
 @auth.requires(lambda: auth.has_membership('ACCOUNTS') |  auth.has_membership('ACCOUNTS MANAGER') | auth.has_membership(role = 'MANAGEMENT') | auth.has_membership('ROOT'))        
 def get_bank_master_grid():
     db.Bank_Master.status_id.default = 1
@@ -61,6 +73,72 @@ def get_location_cost_grid():
         row.append(TR(TD(n.id),TD(n.location_code),TD(n.location_name),TD(n.cost_center),TD(btn_lnk)))
     tbody = TBODY(*row)
     table = TABLE(*[thead, tbody], _class = 'table')
+    return dict(form = form, table = table)
+
+@auth.requires(lambda: auth.has_membership('ACCOUNTS') |  auth.has_membership('ACCOUNTS MANAGER') | auth.has_membership(role = 'MANAGEMENT') | auth.has_membership('ROOT'))        
+def get_cost_center_category_group_grid():
+    form = SQLFORM(db.Cost_Center_Category_Group, request.args(0))
+    if form.process().accepted:
+        response.flash = 'Form save.'
+    elif form.errors:
+        response.flash = 'Form has error.'
+    row = []
+    ctr = 0
+    thead = THEAD(TR(TH('#'),TH('Group Code'),TH('Group Name'),TH('Action'),_class = 'bg-red'))
+    for n in db().select(orderby = db.Cost_Center_Category_Group.id):
+        view_lnk = A(I(_class='fa fa-search'), _title='View Row', _type='button  ', _role='button', _class='btn btn-icon-toggle disabled')
+        edit_lnk = A(I(_class='fa fa-user-edit'), _title='Edit Row', _type='button  ', _role='button', _class='btn btn-icon-toggle', _href=URL('settings','get_cost_center_category_group_grid', args = n.id))
+        dele_lnk = A(I(_class='fa fa-trash'), _title='Delete Row', _type='button  ', _role='button', _class='btn btn-icon-toggle disabled')
+        btn_lnk = DIV(view_lnk, edit_lnk, dele_lnk)
+        row.append(TR(TD(n.id),TD(n.cost_center_category_group_code),TD(n.cost_center_category_group_name),TD(btn_lnk)))
+    tbody = TBODY(*row)
+    table = TABLE(*[thead, tbody], _class = 'table')
+    return dict(form = form, table = table)
+
+@auth.requires(lambda: auth.has_membership('ACCOUNTS') |  auth.has_membership('ACCOUNTS MANAGER') | auth.has_membership(role = 'MANAGEMENT') | auth.has_membership('ROOT'))        
+def get_cost_center_category_grid():
+    form = SQLFORM(db.Cost_Center_Category, request.args(0))
+    if form.process().accepted:
+        response.flash = 'Form save.'
+    elif form.errors:
+        response.flash = 'Form has error.'
+    row = []
+    ctr = 0
+    thead = THEAD(TR(TH('#'),TH('Group Code'),TH('Category Code'),TH('Category Name'),TH('Action'),_class = 'bg-red'))
+    for n in db().select(orderby = db.Cost_Center_Category.id):
+        view_lnk = A(I(_class='fa fa-search'), _title='View Row', _type='button  ', _role='button', _class='btn btn-icon-toggle disabled')
+        edit_lnk = A(I(_class='fa fa-user-edit'), _title='Edit Row', _type='button  ', _role='button', _class='btn btn-icon-toggle', _href=URL('settings','get_cost_center_category_grid', args = n.id))
+        dele_lnk = A(I(_class='fa fa-trash'), _title='Delete Row', _type='button  ', _role='button', _class='btn btn-icon-toggle disabled')
+        btn_lnk = DIV(view_lnk, edit_lnk, dele_lnk)
+        row.append(TR(TD(n.id),TD(n.cost_center_category_group_id),TD(n.cost_center_category_code),TD(n.cost_center_category_name),TD(btn_lnk)))
+    tbody = TBODY(*row)
+    table = TABLE(*[thead, tbody], _class = 'table')
+    return dict(form = form, table = table)
+
+@auth.requires(lambda: auth.has_membership('ACCOUNTS') |  auth.has_membership('ACCOUNTS MANAGER') | auth.has_membership(role = 'MANAGEMENT') | auth.has_membership('ROOT'))        
+def get_cost_center_grid():
+    form = SQLFORM(db.Cost_Center, request.args(0))
+    if form.process().accepted:
+        response.flash = 'Form save.'
+    elif form.errors:
+        response.flash = 'Form has error.'
+    row = []
+    ctr = 0
+    
+    thead = THEAD(TR(TH('#'),TH('Center Code'),TH('Center Name'),TH('Department'),TH('Location'),TH('Action'),_class = 'bg-red'))
+    for n in db().select(orderby = db.Cost_Center.id):        
+        _location = _dept_code = 'None'
+        if n.location_cost_center_id:
+            _location = n.location_cost_center_id.location_name
+        if n.dept_code_id:
+            _dept_code = n.dept_code_id.department_name
+        view_lnk = A(I(_class='fa fa-search'), _title='View Row', _type='button  ', _role='button', _class='btn btn-icon-toggle disabled')
+        edit_lnk = A(I(_class='fa fa-user-edit'), _title='Edit Row', _type='button  ', _role='button', _class='btn btn-icon-toggle', _href=URL('settings','get_cost_center_grid', args = n.id))
+        dele_lnk = A(I(_class='fa fa-trash'), _title='Delete Row', _type='button  ', _role='button', _class='btn btn-icon-toggle disabled')
+        btn_lnk = DIV(view_lnk, edit_lnk, dele_lnk)
+        row.append(TR(TD(n.id),TD(n.cost_center_code),TD(n.cost_center_name),TD(_dept_code),TD(_location),TD(btn_lnk)))
+    tbody = TBODY(*row)
+    table = TABLE(*[thead, tbody], _class = 'table table-hover')
     return dict(form = form, table = table)
 
 @auth.requires(lambda: auth.has_membership('ACCOUNTS') |  auth.has_membership('ACCOUNTS MANAGER') | auth.has_membership(role = 'MANAGEMENT') | auth.has_membership('ROOT'))        
@@ -163,21 +241,31 @@ def get_gl_description_library_grid():
     table = TABLE(*[thead, tbody], _class = 'table')
     return dict(form = form, table = table)
 
+def validate_account_transaction_type(form):
+    form.vars.financial_year = request.now
+    form.vars.account_voucher_transaction_code = request.vars.account_voucher_transaction_code.upper()
+    form.vars.account_voucher_transaction_name = request.vars.account_voucher_transaction_name.upper()
+    if request.args(0):
+        _id = db(db.Account_Voucher_Type.id == request.args(0)).select().first()
+        form.vars.financial_year = _id.financial_year
+        form.vars.account_voucher_transaction_code = request.vars.account_voucher_transaction_code.upper()
+        form.vars.account_voucher_transaction_name = request.vars.account_voucher_transaction_name.upper()
+
 @auth.requires(lambda: auth.has_membership('ACCOUNTS') |  auth.has_membership('ACCOUNTS MANAGER') | auth.has_membership(role = 'MANAGEMENT') | auth.has_membership('ROOT'))
-def get_account_transaction_type_grid():
+def get_account_transaction_type_grid():    
     form = SQLFORM(db.Account_Voucher_Type, request.args(0))
-    if form.process().accepted:
+    if form.process(onvalidation = validate_account_transaction_type).accepted:
         response.flash = 'Form save.'
     elif form.errors:
         response.flash = 'Form has error.'
     row = []
-    thead = THEAD(TR(TD('#'),TD('VOU.Serial.No.'),TD('Transaction Type'),TD('Transaction Code'),TD('Transaction Name'),TD('Action'),_class = 'bg-red'))
+    thead = THEAD(TR(TD('#'),TD('Financial Year'),TD('Transaction Prefix'),TD('Transaction Code'),TD('Transaction Name'),TD('Transaction Type'),TD('Serial'),TD('Action'),_class = 'bg-red'))
     for n in db().select(orderby = db.Account_Voucher_Type.id):
         view_lnk = A(I(_class='fa fa-search'), _title='View Row', _type='button  ', _role='button', _class='btn btn-icon-toggle disabled', _href=URL('#', args = n.id))
         edit_lnk = A(I(_class='fa fa-user-edit'), _title='Edit Row', _type='button  ', _role='button', _class='btn btn-icon-toggle', _href=URL('settings','get_account_transaction_type_grid', args = n.id))
         dele_lnk = A(I(_class='fa fa-trash'), _title='Delete Row', _type='button  ', _role='button', _class='btn btn-icon-toggle disabled', _href=URL('#', args = n.id))
         btn_lnk = DIV(view_lnk, edit_lnk, dele_lnk)
-        row.append(TR(TD(n.id),TD(n.voucher_serial_no),TD(n.account_voucher_transaction_type),TD(n.account_voucher_transaction_code),TD(n.account_voucher_transaction_name),TD(btn_lnk)))
+        row.append(TR(TD(n.id),TD(n.financial_year),TD(n.transaction_prefix),TD(n.account_voucher_transaction_code),TD(n.account_voucher_transaction_name),TD(n.account_voucher_transaction_type),TD(n.voucher_serial_no),TD(btn_lnk)))
     tbody = TBODY(*row)
     table = TABLE(*[thead, tbody], _class = 'table')
     return dict(form = form, table = table)
@@ -200,7 +288,6 @@ def get_account_transaction_payment_mode_grid():
     tbody = TBODY(*row)
     table = TABLE(*[thead, tbody], _class = 'table')
     return dict(form = form, table = table)
-
 
 @auth.requires(lambda: auth.has_membership('ACCOUNTS') |  auth.has_membership('ACCOUNTS MANAGER') | auth.has_membership(role = 'MANAGEMENT') | auth.has_membership('ROOT'))        
 def get_financial_statement_group_grid():

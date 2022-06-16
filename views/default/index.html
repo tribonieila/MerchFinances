@@ -1,1 +1,83 @@
 {{extend 'layout.html'}}
+<section class="content-header">
+    <h1>Transactions Today<small>{{=request.now.date().strftime('%B %d, %Y')}}</small></h1>
+
+    </section>
+<section class="content">    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="info-box bg-yellow">
+                <span class="info-box-icon"><i class="fa fa-cash-register"></i></span>
+                <div class="info-box-content">
+                <span class="info-box-text">Cash Collections</span>            
+                <span class="info-box-number">QR 5,200.00</span>
+                <div class="progress">
+                <div class="progress-bar" style="width: 100%"></div>
+                </div>
+                <span class="progress-description">Cash Cheque, PDC Cheque</span>
+                </div>            
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="info-box bg-green">
+                <span class="info-box-icon"><i class="fa fa-money-bill-alt"></i></span>
+                <div class="info-box-content">
+                <span class="info-box-text">Payment Made</span>
+                <span class="info-box-number">QR 92,050.00</span>
+                <div class="progress">
+                <div class="progress-bar" style="width: 100%"></div>
+                </div>
+                <span class="progress-description">Payment Voucher</span>
+                </div>
+            
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="info-box bg-red">
+                <span class="info-box-icon"><i class="fa fa-money-check-alt"></i></span>
+                <div class="info-box-content">
+                <span class="info-box-text">Bank Deposits</span>
+                <span class="info-box-number">QR 114,381.00</span>
+                <div class="progress">
+                <div class="progress-bar" style="width: 100%"></div>
+                </div>
+                <span class="progress-description">RV Confirmation</span>
+                </div>            
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="info-box bg-aqua">
+                <span class="info-box-icon"><i class="fa fa-book"></i></span>
+                <div class="info-box-content">
+                <span class="info-box-text">Journal Entries</span>
+                <span class="info-box-number">QR 163,921.00</span>
+                <div class="progress">
+                <div class="progress-bar" style="width: 100%"></div>
+                </div>
+                <span class="progress-description">Journal Vouchers</span>
+                </div>            
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="info-box bg-teal">
+                <span class="info-box-icon"><i class="fa fa-shuttle-van"></i></span>
+                <div class="info-box-content">
+                <span class="info-box-text">VAN SALES</span>
+                <span class="info-box-number">QR 114,381.00</span>
+                <div class="progress">
+                <div class="progress-bar" style="width: 100%"></div>
+                </div>
+                <span class="progress-description">Cash Collections</span>
+                </div>            
+            </div>
+        </div>
+    </div>            
+
+            
+
+</section>
+

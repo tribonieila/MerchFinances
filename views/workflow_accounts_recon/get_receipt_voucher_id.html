@@ -1,0 +1,83 @@
+{{extend 'layout.html'}}
+
+<section class="content">
+    <div class="row">
+        
+        <div class="col-md-9">
+			<div class="box">
+				<div class="box-header with-border">
+					<h3 class="box-title">Receipt Voucher Transaction Grid</h3>
+				</div>				
+				<div class="box-body">
+					{{=LOAD('workflow_accounts_recon','get_receipt_voucher_transaction_id.load', args = request.args(0), ajax = True, extension = False, target = 'RVTtbl')}}
+				</div>
+			</div>            
+            
+        </div>
+        <div class="col-md-3">
+            <div class="box box-danger">
+                <div class="box-header with-border">
+                    <h3 class="box-title">Account Rec. Form</h3>
+                </div>
+                <div class="box-body">
+                    {{=form.custom.begin}}
+                    <div class="row">
+                        <div class="form-group">
+                            <div class="col-lg-6">
+                                <label class="control-label">RV No.</label>
+                                {{=form.custom.widget.voucher_no}}    
+                            </div>
+                            <div class="col-lg-6">
+                                <label class="control-label">RV Date</label>            
+                                
+                                <input class="form-control" id="Account_Reconciliation_Header_Request_reconciliation_date" name="reconciliation_date" type="date" value="{{=_id.transaction_reference_date}}">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+
+                    </div>
+                    </br>
+					<div class="form-group">
+						<label class="control-label">Total Amount</label>
+						{{=form.custom.widget.rv_amount}}
+					</div>
+                    
+                    <button type="button" class="btn btn-block btn-primary btn-flat" id="idSubmit" onclick="btnSubmit()">Start</button>
+                    <button type="button" class="btn btn-block btn-danger btn-flat" onclick="btnExit()">Exit</button>
+                    {{=form.custom.end}}                         
+                </div>
+            </div>
+        </div>
+    </div>
+</section>             
+
+<script>
+    $(document).ready(function(){
+        // $("#idSubmit").attr("disabled","disabled");
+        $("#Account_Reconciliation_Header_Request_reconciliation_transaction_no, #Account_Reconciliation_Header_Request_reconciliation_date").prop('readonly', true);
+        $("#Account_Reconciliation_Header_Request_voucher_no, #Account_Reconciliation_Header_Request_rv_amount").prop('readonly', true);
+        
+        $("#Account_Reconciliation_Header_Request_status_id").change(function(){
+            if ($("#Account_Reconciliation_Header_Request_status_id").val() != "") {
+                $("#idSubmit").removeAttr("disabled");
+            } else {                
+                $("#idSubmit").attr("disabled","disabled");
+            }
+        });
+    })
+
+    function btnSubmit(){
+        alertify.confirm('Account Reconcilation', 'Do you want to proceed?', function(){                  
+            ajax("{{=URL('workflow_accounts_recon','post_receipt_voucher_header_id', args = request.args(0))}}");
+            // window.location.replace("{{=URL('workflow_accounts_recon','post_account_reconciliation', args = request.args(0))}}")
+            
+
+        }
+            , function(){ alertify.error('Cancel')});
+    }
+
+    function btnExit(){
+        window.location.href="{{=URL('workflow_accounts_recon','get_pending_rv_reconciliation_grid')}}"
+    }
+</script>

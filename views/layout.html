@@ -105,7 +105,8 @@
 						<a href="{{=URL('default','user/profile')}}" class="btn btn-default btn-flat">Profile</a>
 						</div> -->
 						<div class="pull-right">
-						<a href="{{=URL('default','user/logout')}}" class="btn btn-default btn-flat">Sign out</a>
+							<a href="http://localhost:4000/welcome/default/change_password" class="btn btn-default btn-flat">Change Password</a>
+							<a href="{{=URL('default','user/logout')}}" class="btn btn-default btn-flat">Sign out</a>
 						</div>
 					</li>
 					</ul>
@@ -140,17 +141,15 @@
 					</span>                  
 				</a>
 				<ul class="treeview-menu">                    
-					<li><a href="{{=URL('account_transaction','get_receipt_voucher_grid')}}"><i class="fa fa-caret-right"></i> Receipt Voucher</a></li>
-					<li><a href="{{=URL('account_transaction','get_rv_confirmation_grid')}}"><i class="fa fa-caret-right"></i> RV Confirmation</a></li>
-					<li><a href="{{=URL('account_transaction','get_payment_voucher_grid')}}"><i class="fa fa-caret-right"></i> Payment Voucher</a></li>
-					<li><a href="#"><i class="fa fa-caret-right"></i> Journal Voucher</a></li>
+					<!-- <li><a href="{{=URL('account_transaction','get_receipt_voucher_grid')}}"><i class="fa fa-caret-right"></i> Receipt Voucher</a></li> -->
+					<li><a href="{{=URL('workflow_receipt_voucher','get_receipt_voucher_grid')}}"><i class="fa fa-caret-right"></i> Receipt Voucher</a></li>
+					<li><a href="{{=URL('workflow_rv_confirmation','get_rv_confirmation_grid')}}"><i class="fa fa-caret-right"></i> RV Confirmation</a></li>
+					<li><a href="{{=URL('workflow_payment_voucher','get_payment_voucher_grid')}}"><i class="fa fa-caret-right"></i> Payment Voucher</a></li>
+					<li><a href="{{=URL('workflow_pv_confirmation','get_pv_confirmation_grid')}}"><i class="fa fa-caret-right"></i> PV Confirmation</a></li>
+					<li><a href="{{=URL('workflow_journal_voucher','get_journal_voucher_grid')}}"><i class="fa fa-caret-right"></i> Journal Voucher</a></li>
+					<li><a href="{{=URL('workflow_jv_confirmation','get_jv_confirmation_grid')}}"><i class="fa fa-caret-right"></i> JV Confirmation</a></li>
 					<li><a href="{{=URL('account_transaction','get_debit_credit_note_grid')}}"><i class="fa fa-caret-right"></i> Debit/Credit Note</a></li>
-					<li><a href="#"><i class="fa fa-caret-right"></i> Accounts Reconciliation</a></li>
-
-					<!-- <li><a href="#"><i class="fa fa-caret-right"></i> Workflow 1</a></li>
-					<li><a href="#"><i class="fa fa-caret-right"></i> Workflow 2</a></li>
-					<li><a href="#"><i class="fa fa-caret-right"></i> Workflow 3</a></li> -->
-					
+					<li><a href="{{=URL('workflow_accounts_recon','get_pending_rv_reconciliation_grid')}}"><i class="fa fa-caret-right"></i> Accounts Reconciliation</a></li>
 				</ul>              
 				</li>    
 
@@ -163,7 +162,9 @@
 				</a>
 				<ul class="treeview-menu">                    
 					<li><a href="{{=URL('master','get_master_account_grid')}}"><i class="fa fa-caret-right"></i> Master Accounts</a></li>
-					<li><a href="#"><i class="fa fa-caret-right"></i> Banks</a></li>                
+					<li><a href="{{=URL('master','get_merch_bank_master_grid')}}"><i class="fa fa-caret-right"></i> Merch Bank Master</a></li>
+					<li><a href="{{=URL('settings','get_cost_center_grid')}}"><i class="fa fa-caret-right"></i> Cost Center</a></li>
+					<li><a href="{{=URL('master','get_master_account_balanced_grid')}}"><i class="fa fa-caret-right"></i> Master Account Balance</a></li>
 				</ul>              
 				</li>            
 							
@@ -175,14 +176,14 @@
 					</span>
 				</a>                                 
 				<ul class="treeview-menu" >
-					<li><a href="{{=URL('account_transaction','get_receipt_voucher_grid')}}"><i class="fa fa-caret-right"></i> Receipt Voucher</a></li>
-					<li><a href="{{=URL('account_transaction','get_payment_voucher_grid')}}"><i class="fa fa-caret-right"></i> Payment Voucher</a></li>
-					<li><a href="#"><i class="fa fa-caret-right"></i> Journal Voucher</a></li>
-					<li><a href="{{=URL('account_transaction','get_debit_credit_note_grid')}}"><i class="fa fa-caret-right"></i> Debit/Credit Note</a></li>
-					<li><a href="#"><i class="fa fa-caret-right"></i> Accounts Reconciliation</a></li>
+					<li><a href="{{=URL('account_transaction','get_account_transaction_grid_id', args = 1)}}"><i class="fa fa-caret-right"></i> Receipt Voucher</a></li>
+					<li><a href="{{=URL('account_transaction','get_account_transaction_grid_id', args = 2)}}"><i class="fa fa-caret-right"></i> Bank Deposits</a></li>
+					<li><a href="{{=URL('account_transaction','get_account_transaction_grid_id', args = 3)}}"><i class="fa fa-caret-right"></i> Payment Voucher</a></li>
+					<li><a href="{{=URL('account_transaction','get_account_transaction_grid_id', args = 4)}}"><i class="fa fa-caret-right"></i> Journal Voucher</a></li>
+					<li><a href="{{=URL('account_transaction','get_account_transaction_grid_id', args = 5)}}"><i class="fa fa-caret-right"></i> Debit/Credit Note</a></li>
+					<li><a href="{{=URL('account_transaction','get_account_transaction_grid_id', args = 6)}}"><i class="fa fa-caret-right"></i> Accounts Reconciliation</a></li>
 				</ul>
 				</li>     
-
 				<li class="treeview menu">  
 					<a href="#">
 					<i class="fa fa-print"></i> <span>Reports</span>
@@ -292,6 +293,11 @@
 					<li><a href="{{=URL('account_transaction','get_business_unit_grid')}}"><i class="fa fa-caret-right"></i> Business Unit</a></li>
 					<li><a href="{{=URL('settings','get_general_department_grid')}}"><i class="fa fa-caret-right"></i> Gen. Dept. Cost Center</a></li>
 					<li><a href="{{=URL('settings','get_location_cost_grid')}}"><i class="fa fa-caret-right"></i> Location Cost Center</a></li>
+
+					<li><a href="{{=URL('settings','get_cost_center_category_group_grid')}}"><i class="fa fa-caret-right"></i> Cost Center Category Group</a></li>
+					<li><a href="{{=URL('settings','get_cost_center_category_grid')}}"><i class="fa fa-caret-right"></i> Cost Center Category</a></li>
+					<li><a href="{{=URL('settings','get_cost_center_grid')}}"><i class="fa fa-caret-right"></i> Cost Center</a></li>
+
 					<li><a href="{{=URL('settings','get_transaction_payment_type_grid')}}"><i class="fa fa-caret-right"></i> TXN Payment Type</a></li>
 					<li><a href="{{=URL('account_transaction','get_department_grid')}}"><i class="fa fa-caret-right "></i> Department</a></li>
 					<li><a href="{{=URL('settings','get_currency_grid')}}"><i class="fa fa-caret-right"></i> Currency</a></li>

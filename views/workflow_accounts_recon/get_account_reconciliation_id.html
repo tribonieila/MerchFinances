@@ -1,0 +1,113 @@
+{{extend 'layout.html'}}
+
+<section class="content">
+    <div class="row">
+        <div class="col-md-9">
+			<div class="box">
+				<div class="box-header with-border">
+					<h3 class="box-title">Account Reconciliation Transaction Grid</h3>
+				</div>				
+				<div class="box-body">
+					{{=LOAD('workflow_accounts_recon','get_account_reconciliation_transaction_id.load', args = request.args(0), ajax = True, extension = False, target = 'ARTtbl')}}
+				</div>
+			</div>            
+            
+        </div>
+        <div class="col-md-3">
+            <div class="box box-danger">
+                <div class="box-header with-border">
+                    <h3 class="box-title">Account Rec. Form</h3>
+                </div>
+                <div class="box-body">
+                    {{=form.custom.begin}}
+                    <div class="row">
+                        <div class="form-group">
+                            <div class="col-lg-6">
+                                <label class="control-label">Transaction No.</label>
+                                {{=form.custom.widget.reconciliation_transaction_no}}    
+                            </div>
+                            <div class="col-lg-6">
+                                <label class="control-label">Transaction Date</label>
+                                
+                                <input class="form-control" id="Account_Reconciliation_Header_reconciliation_date" name="reconciliation_date" type="date" value="{{=request.now.date()}}">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+
+                    </div>
+                    </br>
+                    <div class="form-group">
+						<label class="control-label">RV No.</label>
+						{{=form.custom.widget.voucher_no}}
+					</div>
+					<div class="form-group">
+						<label class="control-label">RV Total Amount To Recon.</label>
+                        {{import locale}}						
+                        <input class="decimal form-control" id="Account_Reconciliation_Header_rv_amount" name="rv_amount" type="text" value="{{=locale.format('%.2F',_id.rv_amount or 0, grouping = True)}}" readonly="">
+					</div>
+					<div class="form-group">
+						<label class="control-label">Total Reconciled Amount</label>
+                        <input class="decimal form-control" id="Account_Reconciliation_Header_total_reconciled_amount" name="total_reconciled_amount" type="text" value="{{=locale.format('%.2F',_id.total_reconciled_amount or 0, grouping = True)}}" readonly="">
+					</div>
+					<div class="form-group">
+						<label class="control-label">Balance Amount to Reconcile</label>
+                        <input class="decimal form-control" id="Account_Reconciliation_Header_rv_balanced_amount" name="rv_balanced_amount" type="text" value="{{=locale.format('%.2F',_id.rv_balanced_amount or 0, grouping = True)}}" readonly="">
+					</div>
+                    <!-- bal = rv - total recon -->
+                    <div class="form-group">
+						<label class="control-label">Status</label>
+						{{=form.custom.widget.status_id}}
+					</div>                    
+                    <!-- {{if (auth.has_membership(role = 'ACCOUNTS MANAGER') | auth.has_membership(role = 'ROOT')) and db(db.Account_Reconciliation_Header.status_id == 21).select().first(): }} -->
+                        <button type="button" class="btn btn-block btn-primary btn-flat" id="idConfirm" onclick="btnConfirm()">Post To Gen.Ledger</button>
+                        <button type="button" class="btn btn-block btn-warning btn-flat" id="idReject" onclick="btnReject()">Reject</button>
+                    <!-- {{elif auth.has_membership(role = 'ACCOUNTS MANAGER') and db(db.Account_Reconciliation_Header.status_id == 20).select().first():}} -->
+                        <button type="button" class="btn btn-block btn-primary btn-flat" id="idApproved" onclick="btnApproved()">Approved</button>
+                    <!-- {{pass}} -->
+                    <button type="button" class="btn btn-block btn-danger btn-flat" onclick="btnExit()">Exit</button>
+                    {{=form.custom.end}}                         
+                </div>
+            </div>
+        </div>
+    </div>
+</section>             
+
+<script>
+    $(document).ready(function(){
+        // $("#idSubmit").attr("disabled","disabled");
+        $("#Account_Reconciliation_Header_reconciliation_transaction_no, #Account_Reconciliation_Header_reconciliation_date").prop('readonly', true);
+        $("#Account_Reconciliation_Header_voucher_no, #Account_Reconciliation_Header_rv_amount").prop('readonly', true);
+        $("#Account_Reconciliation_Header_total_reconciled_amount, #Account_Reconciliation_Header_rv_balanced_amount").prop('readonly', true);        
+        $("#Account_Reconciliation_Header_status_id").change(function(){
+            if ($("#Account_Reconciliation_Header_status_id").val() != "") {
+                $("#idSubmit").removeAttr("disabled");
+            } else {                
+                $("#idSubmit").attr("disabled","disabled");
+            }
+        });
+    })
+
+    function btnApproved(){
+        alertify.confirm('Account Reconciliation', 'Approved Account For Reconciliation?', function(){                        
+            ajax("{{=URL('workflow_accounts_recon','patch_account_reconcilation_id', args = [1, request.args(0)])}}");
+        }
+            , function(){ alertify.error('Cancel')});
+    }
+
+    function btnConfirm(){
+        alertify.confirm('Account Reconciliation','Confirm Account For Reconciliation?', function(){ 
+            ajax("{{=URL('workflow_accounts_recon','patch_account_reconcilation_id', args = [2, request.args(0)])}}");
+        }, function() { alertify.error('Cancel')});
+    }
+
+    function btnReject(){
+        alertify.confirm('Account Reconciliation','Reject Account For Reconciliation?', function(){ 
+            ajax("{{=URL('workflow_accounts_recon','patch_account_reconcilation_id', args = [3, request.args(0)])}}");
+        }, function() { alertify.error('Cancel')});
+    }
+
+    function btnExit(){
+        window.location.href="{{=URL('workflow_accounts_recon','get_pending_rv_reconciliation_grid')}}"
+    }
+</script>

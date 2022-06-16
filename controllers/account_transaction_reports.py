@@ -66,25 +66,23 @@ _MerchTrading = Image(_merchtrading, width = 550, height = 80, hAlign = 'CENTER'
 def get_account_voucher_canvas(canvas, doc):
     canvas.saveState()
     _id = db(db.Account_Voucher_Request.id == request.args(0)).select().first()
-    _vn = db(db.Account_Voucher_Type.account_voucher_transaction_type == 21).select().first()
-    _trnx = db(db.Account_Voucher_Transaction_Request.account_voucher_request_id == request.args(0)).select().first()
-    _ma = dc(dc.Master_Account.account_code == _trnx.account_code_id).select().first()
+    _ma = dc(dc.Master_Account.account_code == _id.account_code).select().first()
     
     _top = [
         ['RECEIPT VOUCHER'],
-        [str(_vn.account_voucher_transaction_code) + str(_id.voucher_no)],
-        ['Receive with thanks from: ' + str(_ma.account_name),'','','','Date',':',_id.transaction_reference_date.strftime('%d/%b/%Y')],            
+        [str(_id.account_voucher_transaction_code) + str(_id.voucher_no)],
+        ['Receive with thanks from: ' + str(_id.received_from),'','','','Date',':',_id.transaction_reference_date.strftime("%d/%b/%Y")], #.strftime("%d/%b/%Y")            
         ['Mode of Payment',':',_id.account_payment_mode_id.account_voucher_payment_name,'','Cheque No',':',_id.cheque_no],
-        ['Bank Name',':',_id.bank_name,'','Cheque Dated',':',_id.cheque_dated.strftime('%d/%b/%Y')],
+        ['Bank Name',':',_id.bank_name_id,'','Cheque Dated',':',_id.cheque_dated], #.strftime('%d/%b/%Y')
     ]
 
     if _id.account_payment_mode_id == 1:
         _top = [
             ['RECEIPT VOUCHER'],
-            [str(_vn.account_voucher_transaction_code) + str(_id.voucher_no)],
-            ['Receive with thanks from: ' + str(_ma.account_name),'','','','Date',':',_id.transaction_reference_date.strftime('%d/%b/%Y')],            
+            [str(_id.account_voucher_transaction_code) + str(_id.voucher_no)],
+            ['Receive with thanks from: ' + str(_id.received_from),'','','','Date',':',_id.transaction_reference_date.strftime("%d/%b/%Y")],            #.strftime("%d/%b/%Y")
             ['Mode of Payment',':',_id.account_payment_mode_id.account_voucher_payment_name,'','','',''],
-            ['','','','','','',''],
+            ['Account Code',':',str(_id.account_code) + ' - ' + str(_ma.account_name),'','','',''],
         ]
     header = Table(_top, colWidths=[110,20,'*',30,110,20,'*'])
     header.setStyle(TableStyle([
@@ -149,13 +147,14 @@ def get_account_voucher_request_id():
     _row = [['#','Code','Name','Dept.','Type','Ref.No.','Description','Amount']]
     for n in db(db.Account_Voucher_Transaction_Request.account_voucher_request_id == request.args(0)).select():
         ctr += 1
-        _ma =  dc(dc.Master_Account.account_code == n.account_code_id).select().first()
+        _ma =  dc(dc.Master_Account.account_code == n.account_credit_code).select().first()
+        # _am = dc(dc.Master_Account.account_code == n.account_credit_code).select().first()
         _account_name = 'None'
         if _ma:
             _account_name = _ma.account_name
         _row.append([
             ctr,
-            n.account_code_id,
+            n.account_credit_code,
             Paragraph(_account_name, style = _style),
             n.department_code,
             n.account_voucher_transaction_type,
@@ -182,6 +181,7 @@ def get_account_voucher_request_id():
         ('VALIGN',(0,1),(-1,-3),'TOP'),
         ('FONTNAME', (0, 0), (-1, 0), 'Courier-Bold', 12),
         ('FONTNAME', (6, -2), (-1, -2), 'Courier-Bold', 12),
+        ('FONTNAME', (0, -1), (-1, -1), 'Courier-Bold', 12),
         ('TEXTCOLOR',(0,0),(-1,0),colors.white),
         ('BACKGROUND',(0,0),(-1,0), colors.Color(0, 0, 0, 0.4)),
         ('LINEBELOW', (0,0), (-1,0), 0.25,  colors.black,None, (2,2)),

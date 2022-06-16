@@ -1,0 +1,155 @@
+{{extend 'layout.html'}}
+
+<section class="content">
+    <div class="callout callout-info">
+        <h4>In progress...</h4>
+        <p>under delopment and testing...</p>
+    </div>
+    <div class="progress progress-sm active">
+        <div class="progress-bar progress-bar-success progress-bar-striped" role="progressbar" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100" style="width: 90%">
+        <span class="sr-only">20% Complete</span>
+        </div>
+    </div>
+
+    <div class="row">                
+        <div class="col-md-9">
+            {{=LOAD('workflow_pv_confirmation','post_pv_confirmation_transaction.load', args = request.args(0), ajax = True, extension = False, target = 'PVTtbl')}}
+        </div>
+        <div class="col-md-3">
+            <div class="box box-danger">
+                <div class="box-header with-border">
+                    <h3 class="box-title">PV Confirmation Form</h3>
+                </div>
+                <div class="box-body">
+                    {{=form.custom.begin}}                                       
+                    <div class="form-group">
+                        <label>Financial Year {{=request.now.year}}</label>
+                    </div>          
+                    <div id="payment_voucher_id">
+                        <div class="row">
+                            <div class="form-group">
+                                <div class="col-lg-6">                              
+                                    <label>Payment Voucher No</label>
+                                    {{=form.custom.widget.payment_voucher_no}}
+                                </div>                  
+                                <div class="col-lg-6">      
+                                    <label>Date</label>
+                                    <input class="form-control" id="Account_Voucher_Request_payment_voucher_date" name="payment_voucher_date" type="date" value="{{=_id.payment_voucher_date}}">
+                                </div>                  
+                            </div>                    
+                        </div>
+                        <br/>
+                    </div>                    
+                    <div class="row">
+                        <div class="form-group">
+                            <div class="col-lg-6">                              
+                                <label>Transaction No</label>
+                                {{=form.custom.widget.payment_voucher_request_no}}    
+                            </div>                  
+                            <div class="col-lg-6">      
+                                <label>Date</label>
+                                <input class="form-control" id="Account_Voucher_Request_transaction_reference_date" name="transaction_reference_date" type="date" value="{{=_id.transaction_reference_date}}">
+                            </div>                  
+                        </div>
+                    </div>
+                    </br>
+                    <div class="form-group">
+                        <label>Account Payment Mode</label>
+                        {{=form.custom.widget.account_payment_mode_id}}    
+                    </div>         
+                    <div class="form-group">
+                        <label>Payee</label>
+                        {{=form.custom.widget.payee}}    
+                    </div>         
+                    <div class="form-group">
+                        <label>Bank Name</label>
+                        {{=form.custom.widget.bank_name_id}}    
+                    </div>                         
+
+                    <div class="row">
+                        <div class="form-group">
+                            <div class="col-lg-5">
+                                <label>Account Code</label>
+                                {{=form.custom.widget.account_code}}        
+                            </div>
+                            <div class="col-lg-7">
+                                <label>Account Name</label>
+                                <input class="form-control" id="account_name" name="account_name" type="text" value="{{=_id.bank_name_id.bank_name}}">
+                            </div>
+                        </div>                             
+                    </div> 
+                    </br>
+                    <div class="row">
+                        <div class="form-group">
+                            <div class="col-lg-6">
+                                <label>Cheque No</label>
+                                {{=form.custom.widget.cheque_no}}        
+                            </div>
+                            <div class="col-lg-6">
+                                <label>Cheque Dated</label>
+                                <input class="form-control" id="Account_Voucher_Request_cheque_dated" name="cheque_dated" type="date" value="{{=_id.cheque_dated}}">
+                            </div>
+                        </div>                             
+                    </div> 
+                    </br>
+                    <div class="row">
+                        <div class="form-group">
+                            <div class="col-lg-6">
+                                <label>Custom Invoice #</label>
+                                {{=form.custom.widget.custom_invoice_no}}        
+                            </div>
+                            <div class="col-lg-6">
+                                <label>Custom Declaration #</label>
+                                {{=form.custom.widget.custom_declaration_no}}            
+                            </div>
+                        </div>                             
+                    </div> 
+                    </br>
+                    <div class="form-group">
+                        <label>Manual PV #</label>
+                        {{=form.custom.widget.manual_pv_no}}    
+                    </div>                                              
+                    <div class="form-group">
+                        <label>Status</label>
+                        {{=form.custom.widget.status_id}}    
+                    </div>      
+                    <div class="form-group">
+                        <label>Remarks</label>
+                        {{=form.custom.widget.remarks}}    
+                    </div>                                              
+                    {{if (auth.has_membership(role = 'ACCOUNTS')) | (auth.has_membership(role = 'ACCOUNTS MANAGER')) | (auth.has_membership(role = 'ROOT')):}}
+                        <input class="btn btn-block btn-success btn-flat" type="button" value="Confirm" onclick="Account_Confirmation_Function()">
+                        <!-- <input class="btn btn-block btn-warning btn-flat" type="button" value="Reject" onclick="Account_Rejection_Function()"> -->
+                    {{pass}}                    
+                    <input class="btn btn-block btn-danger btn-flat" type="button" value="Exit" id="btnExit" onclick="ExitFunc()">
+                    {{=form.custom.end}}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>             
+
+<script>
+
+    $(document).ready(function(){
+        $('#btnSubmit').attr('disabled','disabled');
+        $('#Payment_Voucher_Request_account_payment_mode_id option:not(:selected)').attr('disabled',true);
+        $('#Payment_Voucher_Request_bank_name_id option:not(:selected)').attr('disabled',true);
+        $('#Payment_Voucher_Request_status_id option:not(:selected)').attr('disabled',true);
+        $("#Payment_Voucher_Request_payment_voucher_no, #Account_Voucher_Request_payment_voucher_date, #Payment_Voucher_Request_payment_voucher_request_no, #Account_Voucher_Request_transaction_reference_date, #Payment_Voucher_Request_payee, #Payment_Voucher_Request_account_code, #account_name, #Payment_Voucher_Request_cheque_no, #Account_Voucher_Request_cheque_dated, #Payment_Voucher_Request_custom_invoice_no, #Payment_Voucher_Request_custom_declaration_no, #Payment_Voucher_Request_manual_pv_no, #Payment_Voucher_Request_remarks").prop('readonly', true);
+    })
+
+    function Account_Confirmation_Function(){
+        alertify.confirm('PV Confirmation', 'Confirm Payment Voucher?', 
+            function(){
+                ajax("{{=URL('workflow_pv_confirmation','patch_pv_confirmation_id', args = [1, request.args(0)])}}")
+            }
+            , function(){ alertify.error('Cancel')});
+    }
+
+    function ExitFunc(){
+        window.location.replace('{{=URL('workflow_pv_confirmation','get_pv_confirmation_grid')}}'); 
+    }
+
+
+</script>

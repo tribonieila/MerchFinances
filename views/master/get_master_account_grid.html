@@ -33,7 +33,7 @@
                         <div class="form-group">
                             <label class="col-sm-2 control-label"></label>
                             <div class="col-sm-8">                                
-                                <input class="btn btn-success" type="button" value="submit" onClick="onSubmit()"/>
+                                <input class="btn btn-success" type="submit" value="submit">
                                 <input class="btn btn-warning" type="button" value="clear" onClick="onClear()"/>
                             </div>
                         </div>                    
@@ -56,7 +56,7 @@
 </section>             
 <script>
     $(document).ready(function(){
-        $('#Master_Account_chart_of_account_group_code').prop('readonly', true);
+        $('#Master_Account_chart_of_account_group_code').prop('readonly', true);    
         $(".table").DataTable();
         $("#Master_Account_account_sub_group_id").change(function(){
             console.log("Change")

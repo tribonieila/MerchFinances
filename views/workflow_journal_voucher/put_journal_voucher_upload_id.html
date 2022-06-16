@@ -1,0 +1,77 @@
+{{extend 'layout.html'}}
+
+<section class="content">
+
+
+    <div class="row">                
+        <div class="col-md-12 col-sm-12 col-xs-12">
+            <div class="info-box">
+            <span class="info-box-icon bg-aqua"><i class="fa fa-file-upload"></i></span>
+                <div class="info-box-content">
+                    {{=form.custom.begin}}
+                    <table class="table table-condensed">
+                        
+                        <tr>
+                            <td>Transaction No</td>
+                            <td>Date</td>
+                            <td>Voucher No</td>
+                            <td>Date</td>
+                            
+                            <td>Journal Voucher Type</td>
+                            <td>Amount</td>
+                            <td>Remarks</td>
+                            
+
+                        </tr>
+                        <tr>
+                            <td>{{=form.custom.widget.journal_voucher_request_no}}</td>
+                            <td>{{=form.custom.widget.transaction_reference_date}}</td>
+                            <td>{{=form.custom.widget.journal_voucher_no}}</td>
+                            <td>{{=form.custom.widget.journal_voucher_date}}</td>
+
+                            <td>{{=form.custom.widget.journal_voucher_type_id}}</td>
+                            <td>{{=form.custom.widget.total_amount}}</td>
+                            <td>{{=form.custom.widget.remarks}}</td>
+                            
+
+                        </tr>
+                        
+                    </table>
+                    
+                    
+
+                </div>
+            
+            </div>
+            {{=form.custom.widget.file_upload}}
+            {{=form.custom.submit}}
+            {{=form.custom.end}}
+        </div>        
+
+    </div>
+</section>             
+
+<script>
+
+    $(document).ready(function(){
+        $('#btnSubmit').attr('disabled','disabled');
+        $('#Payment_Voucher_Request_account_payment_mode_id option:not(:selected)').attr('disabled',true);
+        $('#Payment_Voucher_Request_bank_name_id option:not(:selected)').attr('disabled',true);
+        $('#Payment_Voucher_Request_status_id option:not(:selected)').attr('disabled',true);
+        $("#Payment_Voucher_Request_payment_voucher_no, #Account_Voucher_Request_payment_voucher_date, #Payment_Voucher_Request_payment_voucher_request_no, #Account_Voucher_Request_transaction_reference_date, #Payment_Voucher_Request_payee, #Payment_Voucher_Request_account_code, #account_name, #Payment_Voucher_Request_cheque_no, #Account_Voucher_Request_cheque_dated, #Payment_Voucher_Request_custom_invoice_no, #Payment_Voucher_Request_custom_declaration_no, #Payment_Voucher_Request_manual_pv_no, #Payment_Voucher_Request_remarks").prop('readonly', true);
+    })
+
+    function Account_Confirmation_Function(){
+        alertify.confirm('PV Confirmation', 'Confirm Payment Voucher?', 
+            function(){
+                ajax("{{=URL('workflow_pv_confirmation','patch_pv_confirmation_id', args = [1, request.args(0)])}}")
+            }
+            , function(){ alertify.error('Cancel')});
+    }
+
+    function ExitFunc(){
+        window.location.replace('{{=URL('workflow_pv_confirmation','get_pv_confirmation_grid')}}'); 
+    }
+
+
+</script>
